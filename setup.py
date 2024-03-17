@@ -19,6 +19,7 @@ setup(
         "os",
         "base64",
         "bs4",
+        "charset-normalizer"
     ],
     author="Luzidos",
     author_email="contact@luzidos.com",

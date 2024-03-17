@@ -20,7 +20,6 @@ from luzidos_utils.aws_io.s3 import write as s3_write
 from luzidos_utils.aws_io.s3 import file_paths as s3_fp
 from luzidos_utils.openai.gpt_call import get_gpt_response
 from luzidos_utils.email import prompts
-from importlib import resources
 import uuid
 
 HEADER = '\033[95m'
@@ -300,10 +299,8 @@ class GmailClient:
                 token.write(creds.to_json())
         return creds
 
-def get_gmail_client(user_id):
+def get_gmail_client(user_id, token_path, credentials_path):
     scopes = ['https://www.googleapis.com/auth/gmail.modify']
-    token_path = resources.path('luzidos_utils.email', 'token.json')
-    credentials_path = resources.path('luzidos_utils.email', 'credentials.json')
     gmail_client = GmailClient(token_path, credentials_path, scopes, user_id)
     return gmail_client
 

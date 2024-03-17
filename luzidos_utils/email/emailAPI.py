@@ -14,9 +14,9 @@ from bs4 import BeautifulSoup
 import re
 import sys
 import os
-
+import requests
 from luzidos_utils.aws_io.s3 import read as s3_read
-from luzidos_utils.aws_io.s3 import read as s3_write
+from luzidos_utils.aws_io.s3 import write as s3_write
 from luzidos_utils.aws_io.s3 import file_paths as s3_fp
 from luzidos_utils.openai.gpt_call import get_gpt_response
 from luzidos_utils.email import prompts
@@ -208,7 +208,15 @@ class GmailClient:
                 attachment_data["attachment_name"] = attachment_name
                 attachment_data["attachment_type"] = attachment_type
                 # Apply OCR
-                attachment_data["attachment_OCR"] = "we need to implement OCR"
+                ocr_api_url = "https://62n2j8msb4.execute-api.us-west-2.amazonaws.com/ocr_testing/ocr"
+                params = {'s3_bucket': bucket_name, 's3_key': s3_fp.EMAIL_ATTACHMENT_PATH(self.user_id, email_id, f"{attachment_id}.{attachment_type}")}
+                ocr_response = requests.get(ocr_api_url, params=params)
+                if ocr_response.status_code == 200:
+                    ocr_data = ocr_response.json()
+                    attachment_data["attachment_OCR"] = ocr_data.get("text", "OCR failed or returned no text.")
+                else:
+                    attachment_data["attachment_OCR"] = ocr_data.get("text", "OCR failed or returned no text.")
+
                 # Summarize email
                 summarize_prompt = prompts.SUMMARIZE_ATTAACHMENT_PROMPT(attachment_type, attachment_name, attachment_data["attachment_OCR"])
                 attachment_data["attachment_description"] = get_gpt_response(summarize_prompt)

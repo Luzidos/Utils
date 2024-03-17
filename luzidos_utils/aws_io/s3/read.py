@@ -3,7 +3,7 @@ import boto3
 import json
 import uuid
 from botocore.exceptions import ClientError
-from luzidos_utils.aws_io.s3 import filepaths as fp
+from luzidos_utils.aws_io.s3 import file_paths as fp
 import datetime as dt
 
 #constants

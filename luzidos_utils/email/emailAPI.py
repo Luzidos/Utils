@@ -20,6 +20,7 @@ from luzidos_utils.aws_io.s3 import write as s3_write
 from luzidos_utils.aws_io.s3 import file_paths as s3_fp
 from luzidos_utils.openai.gpt_call import get_gpt_response
 from luzidos_utils.email import prompts
+
 import uuid
 
 HEADER = '\033[95m'

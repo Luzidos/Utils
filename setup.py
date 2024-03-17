@@ -15,7 +15,6 @@ setup(
         "google-auth-httplib2",
         "google-auth-oauthlib",
         "googleapis-common-protos",
-        "email",
         "os",
         "base64",
         "bs4",

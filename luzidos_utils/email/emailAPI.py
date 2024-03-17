@@ -302,7 +302,7 @@ class GmailClient:
 
 def get_gmail_client(user_id):
     scopes = ['https://www.googleapis.com/auth/gmail.modify']
-    gmail_client = GmailClient('token.json', 'credentials.json', scopes, user_id)
+    gmail_client = GmailClient('luzidos_utils/email/token.json', 'luzidos_utils/email/credentials.json', scopes, user_id)
     return gmail_client
 
 # Usage

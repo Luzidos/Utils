@@ -15,7 +15,6 @@ setup(
         "google-auth-httplib2",
         "google-auth-oauthlib",
         "googleapis-common-protos",
-        "base64",
         "bs4",
         "charset-normalizer"
     ],

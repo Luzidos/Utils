@@ -3,9 +3,9 @@ import boto3
 import json
 import uuid
 from botocore.exceptions import ClientError
-from aws_io.s3 import filepaths as fp
+from luzidos_utils.aws_io.s3 import filepaths as fp
 import datetime as dt
-from aws_io.s3 import read as s3_read
+from luzidos_utils.aws_io.s3 import read as s3_read
 
 #constants
 BUCKET_NAME = "luzidosdatadump"

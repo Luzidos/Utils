@@ -15,9 +15,11 @@ import re
 import sys
 import os
 
-from aws_io.s3 import read as s3_read
-from aws_io.s3 import read as s3_write
-from aws_io.s3 import file_paths as s3_fp
+from luzidos_utils.aws_io.s3 import read as s3_read
+from luzidos_utils.aws_io.s3 import read as s3_write
+from luzidos_utils.aws_io.s3 import file_paths as s3_fp
+from luzidos_utils.openai.gpt_call import get_gpt_response
+from luzidos_utils.email import prompts
 import uuid
 
 HEADER = '\033[95m'
@@ -208,7 +210,8 @@ class GmailClient:
                 # Apply OCR
                 attachment_data["attachment_OCR"] = "we need to implement OCR"
                 # Summarize email
-                attachment_data["attachment_description"] = "we need to implement summary"
+                summarize_prompt = prompts.SUMMARIZE_ATTAACHMENT_PROMPT(attachment_type, attachment_name, attachment_data["attachment_OCR"])
+                attachment_data["attachment_description"] = get_gpt_response(summarize_prompt)
                 # upload data
                 s3_write.upload_email_attachment_json_to_s3(self.user_id, email_id, f"{attachment_id}.json", attachment_data)
                 attachment_ids.append(attachment_id)

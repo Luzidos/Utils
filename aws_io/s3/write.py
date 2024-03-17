@@ -179,8 +179,7 @@ def update_invoice_state_field_in_s3(user_id, invoice_id, key, value):
             substate = substate[subkey]
 
     status = upload_dict_as_json_to_s3(bucket_name, state, object_name)
-    return status
-
+    return stats_impor
 def update_invoice_state_fields_in_s3(user_id, invoice_id, data):
     """
     Update invoice state field in S3 bucket

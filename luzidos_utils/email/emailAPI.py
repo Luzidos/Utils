@@ -299,6 +299,11 @@ class GmailClient:
                 token.write(creds.to_json())
         return creds
 
+def get_gmail_client(user_id):
+    scopes = ['https://www.googleapis.com/auth/gmail.modify']
+    gmail_client = GmailClient('token.json', 'credentials.json', scopes, user_id)
+    return gmail_client
+
 # Usage
 #scopes = ['https://www.googleapis.com/auth/gmail.modify']
 #gmail_client = GmailClient('token.json', 'credentials.json', scopes)

@@ -33,9 +33,9 @@ BOLD = '\033[1m'
 UNDERLINE = '\033[4m'
 
 class GmailClient:
-    def __init__(self, token_file, credentials_file, scopes, user_id):
+    def __init__(self, token_data, credentials_data, scopes, user_id):
         self.service = None
-        self.creds = self.get_credentials(token_file, credentials_file, scopes)
+        self.creds = self.get_credentials(user_id, token_data, credentials_data, scopes)
         self.user_id = user_id
         if self.creds:
             self.service = build("gmail", "v1", credentials=self.creds)
@@ -273,35 +273,35 @@ class GmailClient:
 
 
 
-    # Additional methods for other Gmail API interactions...
-    @staticmethod
-    def get_credentials(token_file, credentials_file, scopes):
+    def get_credentials(user_id,token_data, credentials_data, scopes):
         """
-        Static method to retrieve Gmail API credentials.
-        :param token_file: Path to the token.json file.
-        :param credentials_file: Path to the credentials.json file.
+        Retrieve Gmail API credentials using in-memory data.
+        :param token_data: Dict with token information or None.
+        :param credentials_data: Dict with client credentials.
         :param scopes: Scopes needed for the Gmail API.
         :return: Credentials object.
         """
         creds = None
-        # The file token.json stores the user's access and refresh tokens.
-        if os.path.exists(token_file):
-            creds = Credentials.from_authorized_user_file(token_file, scopes)
-        # If there are no valid credentials available, let the user log in.
+        if token_data:
+            creds = Credentials.from_authorized_user_info(token_data, scopes)
+
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(credentials_file, scopes)
+                flow = InstalledAppFlow.from_client_config(credentials_data, scopes)
                 creds = flow.run_local_server(port=0)
-            # Save the credentials for the next run
-            with open(token_file, 'w') as token:
-                token.write(creds.to_json())
+
+            s3_write.upload_email_credentials_to_s3(user_id, creds.to_json())
+                
         return creds
 
-def get_gmail_client(user_id, token_path, credentials_path):
+def get_gmail_client(user_id):
     scopes = ['https://www.googleapis.com/auth/gmail.modify']
-    gmail_client = GmailClient(token_path, credentials_path, scopes, user_id)
+
+    token_data = s3_read.read_email_token_from_s3(user_id)
+    credentials_data = s3_read.read_email_credentials_from_s3(user_id)
+    gmail_client = GmailClient(token_data, credentials_data, scopes, user_id)
     return gmail_client
 
 # Usage

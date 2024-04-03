@@ -234,3 +234,27 @@ def get_open_agent_processes(user_id):
     if open_agent_processes is None:
        return []
     return open_agent_processes["open_agent_processes"]
+
+def read_email_credentials_from_s3(user_id):
+    """
+    Read email credentials from S3 bucket
+
+    :param user_id: User id
+    :return: Email credentials
+    """
+    bucket_name = fp.ROOT_BUCKET
+    object_name = fp.USER_EMAIL_CREDENTIALS_PATH.format(user_id=user_id)
+    email_credentials = read_json_from_s3(bucket_name, object_name)
+    return email_credentials
+
+def read_email_token_from_s3(user_id):
+    """
+    Read email token from S3 bucket
+
+    :param user_id: User id
+    :return: Email token
+    """
+    bucket_name = fp.ROOT_BUCKET
+    object_name = fp.USER_EMAIL_TOKEN_PATH.format(user_id=user_id)
+    email_token = read_json_from_s3(bucket_name, object_name)
+    return email_token

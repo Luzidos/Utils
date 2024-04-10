@@ -1,7 +1,7 @@
 import boto3
 import json
 import datetime as dt
-from luzidos_utils.constants import DATE_TIME_FORMAT
+from luzidos_utils.constants.format import DATE_TIME_FORMAT
 from luzidos_utils.timebomb.timebomb_status import ACTIVE, CANCELLED, TRIGGERED
 import uuid
 def dispatch_timebomb(execution_datetime, state_update):

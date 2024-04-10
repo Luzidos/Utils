@@ -135,8 +135,8 @@ def update_invoice_data_in_s3(user_id, invoice_id, new_invoice_data, data_type):
     :param new_invoice_data: New invoice data
     """
     bucket_name = fp.ROOT_BUCKET
-    object_name = fp.INVOICE_DATA_PATH.format(user_id=user_id, invoice_id=invoice_id, data_type=data_type)
-    invoice_data = s3_read.read_invoice_data_from_s3(bucket_name, user_id, invoice_id, data_type)
+    object_name = fp.INVOICE_DATA_PATH.format(user_id=user_id, invoice_id=invoice_id, file_name=data_type)
+    invoice_data = s3_read.read_invoice_data_from_s3(user_id, invoice_id, data_type)
     invoice_data.update(new_invoice_data)
     status = upload_dict_as_json_to_s3(bucket_name, invoice_data, object_name)
     return status

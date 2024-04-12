@@ -260,13 +260,5 @@ def read_email_token_from_s3(user_id):
     return email_token
 
 
-def get_id_document_path(user_id):
-    user_data = read_user_data_from_s3(user_id)
-    id_type = user_data["company_id_document_type"]
-    if id_type.lower() == "cédula":
-        return fp.USER_CEDULA_PATH.format(user_id=user_id)
-    elif id_type.lower() == "rut":
-        return fp.USER_RUT_PATH.format(user_id=user_id)
-    else:
-        return None
+
 

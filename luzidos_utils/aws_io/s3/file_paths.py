@@ -23,3 +23,11 @@ USER_EMAIL_CREDENTIALS_PATH = "public/{user_id}/user/email_credentials.json"
 USER_EMAIL_TOKEN_PATH = "public/{user_id}/user/email_token.json"
 USER_CEDULA_PATH = "public/{user_id}/user/cedula.pdf"
 USER_RUT_PATH = "public/{user_id}/user/nit.pdf"
+
+def USER_ID_DOCUMENT_PATH(id_document_type):
+    if id_document_type.lower() == "cédula":
+        return USER_CEDULA_PATH
+    elif id_document_type.lower() == "rut":
+        return USER_RUT_PATH
+    else:
+        return None

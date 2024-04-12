@@ -21,6 +21,7 @@ from luzidos_utils.aws_io.s3 import file_paths as s3_fp
 from luzidos_utils.openai.gpt_call import get_gpt_response
 from luzidos_utils.email import prompts
 import uuid
+import json
 
 HEADER = '\033[95m'
 OKBLUE = '\033[94m'
@@ -273,7 +274,7 @@ class GmailClient:
 
 
 
-    def get_credentials(user_id,token_data, credentials_data, scopes):
+    def get_credentials(self, user_id,token_data, credentials_data, scopes):
         """
         Retrieve Gmail API credentials using in-memory data.
         :param token_data: Dict with token information or None.
@@ -292,7 +293,7 @@ class GmailClient:
                 flow = InstalledAppFlow.from_client_config(credentials_data, scopes)
                 creds = flow.run_local_server(port=0)
 
-            s3_write.upload_email_credentials_to_s3(user_id, creds.to_json())
+            s3_write.upload_email_token_to_s3(user_id, json.loads(creds.to_json()))
                 
         return creds
 

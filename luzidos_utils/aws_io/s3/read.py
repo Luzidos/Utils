@@ -28,7 +28,7 @@ def read_file_from_s3(bucket_name, object_name):
         # Get the object from the S3 bucket
         response = s3_client.get_object(Bucket=bucket_name, Key=object_name)
         # Read the object contents
-        file_data = response['Body'].read().decode()
+        file_data = response['Body'].read()
         print(f"File read successfully from {bucket_name}/{object_name}")
     except Exception as e:
         print(e, f"\nFile not found in {bucket_name}/{object_name}")

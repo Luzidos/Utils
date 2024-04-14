@@ -15,6 +15,26 @@ ROOT_USER_PATH = 'userid'
 READ UTILS
 """
 
+def read_file_from_s3(bucket_name, object_name):
+    """
+    Read a file from an S3 bucket
+
+    :param bucket_name: Name of the S3 bucket
+    :param object_name: Object name in S3
+    :return: File data
+    """
+    s3_client = boto3.client('s3')
+    try:
+        # Get the object from the S3 bucket
+        response = s3_client.get_object(Bucket=bucket_name, Key=object_name)
+        # Read the object contents
+        file_data = response['Body'].read().decode()
+        print(f"File read successfully from {bucket_name}/{object_name}")
+    except Exception as e:
+        print(e, f"\nFile not found in {bucket_name}/{object_name}")
+        return None
+    return file_data
+
 def file_exists_in_s3(bucket_name, object_name):
     """
     Check if a file exists in an S3 bucket

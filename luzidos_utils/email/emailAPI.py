@@ -119,10 +119,11 @@ class GmailClient:
                 message["Cc"] = cc
 
             if attachments:
-                for file in attachments:
-                    with open(file, "rb") as f:
-                        file_data = f.read()
-                        file_name = os.path.basename(file)
+                for file_path in attachments:
+                    bucket_name = file_path.split('/')[0]
+                    file_name = file_path.split('/')[-1]
+                    object_name = '/'.join(file_path.split('/')[1:])
+                    file_data = s3_read.read_file_from_s3(bucket_name, object_name)
                     message.add_attachment(file_data, maintype="application", subtype="octet-stream", filename=file_name)
 
             # encoded message

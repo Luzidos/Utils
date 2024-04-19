@@ -1,1 +1,1 @@
-REGION_NAME = ""
+REGION_NAME = "us-west-2"

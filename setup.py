@@ -7,7 +7,6 @@ setup(
     install_requires=[
         "boto3",
         "datetime",
-        "uuid",
         "botocore",
         "google-api-core",
         "google-api-python-client",

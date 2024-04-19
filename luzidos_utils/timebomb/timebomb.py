@@ -6,12 +6,13 @@ from luzidos_utils.timebomb.timebomb_status import ACTIVE, CANCELLED, TRIGGERED
 import uuid
 from dateutil.relativedelta import relativedelta
 import pytz
+from luzidos_utils.constants.aws import REGION_NAME
 def dispatch_timebomb(execution_datetime, state_update):
     """
     Dispatches time bomb to be triggered at a later time
     """
     # Use the EventBridge client to put a scheduled event
-    eventbridge = boto3.client('events')
+    eventbridge = boto3.client('events', region_name=REGION_NAME)
     timebomb_id =  str(uuid.uuid4())
     rule_name = f"trigger-lambda-{timebomb_id}"
     response = eventbridge.put_rule(
@@ -40,7 +41,7 @@ def cancel_timebomb(timebomb_id):
     """
     Cancels time bomb
     """
-    client = boto3.client('events')
+    client = boto3.client('events', region_name=REGION_NAME)
     rule_name = f"trigger-lambda-{timebomb_id}"
     client.remove_targets(
         Rule=rule_name,

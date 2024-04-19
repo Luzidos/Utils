@@ -4,6 +4,7 @@ import datetime as dt
 from luzidos_utils.constants.format import DATE_TIME_FORMAT
 from luzidos_utils.timebomb.timebomb_status import ACTIVE, CANCELLED, TRIGGERED
 import uuid
+from dateutil.relativedelta import relativedelta
 def dispatch_timebomb(execution_datetime, state_update):
     """
     Dispatches time bomb to be triggered at a later time
@@ -67,7 +68,7 @@ def set_countdown_timebomb(state_update, send_time=None, n_hours=24, n_days=0, n
     current_datetime = dt.datetime.now()
     # Calculate trigger_time based on send_time and n_hours, n_days, n_weeks, n_months, or n_years
     # Trigger_time is the latest posible send_time such that the timebomb is sent within the next n_hours+n_days+n_weeks+n_months+n_years
-    trigger_datetime = current_datetime+ dt.timedelta(hours=n_hours, days=n_days, weeks=n_weeks, months=n_months, years=n_years)
+    trigger_datetime = current_datetime+ relativedelta(hours=n_hours, days=n_days, weeks=n_weeks, months=n_months, years=n_years)
     # if send_time is provided, use it to calculate trigger_time
     if send_time:
         # Ex: if currently it is 1pm and send_time is 7am and n_hours is 24, trigger_time is 7am the next day

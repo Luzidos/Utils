@@ -5,6 +5,7 @@ from luzidos_utils.constants.format import DATE_TIME_FORMAT
 from luzidos_utils.timebomb.timebomb_status import ACTIVE, CANCELLED, TRIGGERED
 import uuid
 from dateutil.relativedelta import relativedelta
+import pytz
 def dispatch_timebomb(execution_datetime, state_update):
     """
     Dispatches time bomb to be triggered at a later time
@@ -59,6 +60,25 @@ def clear_timebombs(thread_id, state_data):
             state_data["metadata"]["timebombs"][thread_id][i]["status"] = CANCELLED
     return state_data
 
+def round_up_to_time(utc_datetime, time_tuple):
+    # Unpack the time tuple
+    target_hour, target_minute, target_tz_name = time_tuple
+    
+    # Load the timezone object
+    target_tz = pytz.timezone(target_tz_name)
+    
+    # Convert the UTC datetime object to the target timezone
+    local_datetime = utc_datetime.astimezone(target_tz)
+    
+    # Create a new datetime object for the target time on the same day
+    target_datetime = local_datetime.replace(hour=target_hour, minute=target_minute, second=0, microsecond=0)
+    
+    # If the target datetime is in the past, move to the next day
+    if target_datetime < local_datetime:
+        target_datetime += dt.timedelta(days=1)
+    
+    # Return the result in UTC
+    return target_datetime.astimezone(pytz.utc)
 
 def set_countdown_timebomb(state_update, send_time=None, n_hours=24, n_days=0, n_weeks=0, n_months=0, n_years=0, type= None):
     """
@@ -71,12 +91,8 @@ def set_countdown_timebomb(state_update, send_time=None, n_hours=24, n_days=0, n
     trigger_datetime = current_datetime+ relativedelta(hours=n_hours, days=n_days, weeks=n_weeks, months=n_months, years=n_years)
     # if send_time is provided, use it to calculate trigger_time
     if send_time:
-        # Ex: if currently it is 1pm and send_time is 7am and n_hours is 24, trigger_time is 7am the next day
-        # Ex: if currently it is 5 am and send_time is 7am and n_hours is 24, trigger_time is 7am the same day
-        if trigger_datetime.time() >= send_time.time():
-            trigger_datetime = dt.datetime.combine(trigger_datetime.date(), send_time.time())
-        else:
-            trigger_datetime = dt.datetime.combine(current_datetime.date(), send_time.time())
+        # round_up_to_time(trigger_datetime, (12, 10, "America/Bogota"))
+        trigger_datetime = round_up_to_time(trigger_datetime, send_time)
     timebomb_id = dispatch_timebomb(trigger_datetime, state_update)
     if type == None:
         type = f"COUNTDOWN@{send_time}-{n_hours}H-{n_days}D-{n_weeks}W-{n_months}M-{n_years}Y"

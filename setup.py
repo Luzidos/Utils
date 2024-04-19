@@ -16,7 +16,7 @@ setup(
         "google-auth-oauthlib",
         "googleapis-common-protos",
         "bs4",
-        "charset-normalizer"
+        "charset-normalizer",
     ],
     author="Luzidos",
     author_email="contact@luzidos.com",

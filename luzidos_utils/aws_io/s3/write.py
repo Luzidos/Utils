@@ -335,11 +335,7 @@ def update_agent_processes(user_id, invoice_id, status="INIT"):
     :param invoice_id: Invoice id
     :param action: Action to perform
     """
-    bucket_name = fp.ROOT_BUCKET
-    object_name = fp.USER_AGENT_PROCESSES_PATH.format(user_id=user_id)
-    agent_processes = s3_read.boto3read_json_from_s3(bucket_name, object_name)
-    if agent_processes is None:
-        agent_processes = {"open_agent_processes": [], "completed_agent_processes": [], "cancelled_agent_processes": []}
+    agent_processes = s3_read.read_agent_processes_from_s3(user_id)
     if status == "INIT":
         agent_processes["open_agent_processes"].append(invoice_id)
     elif status == "COMPLETE":
@@ -347,6 +343,8 @@ def update_agent_processes(user_id, invoice_id, status="INIT"):
         agent_processes["completed_agent_processes"].append(invoice_id)
     else:
         raise ValueError(f"Invalid status: {status}")
+    bucket_name = fp.ROOT_BUCKET
+    object_name = fp.USER_AGENT_PROCESSES_PATH.format(user_id=user_id)
     status = upload_dict_as_json_to_s3(bucket_name, agent_processes, object_name)
     return status
 
@@ -360,4 +358,32 @@ def upload_email_token_to_s3(user_id, creds):
     bucket_name = fp.ROOT_BUCKET
     object_name = fp.USER_EMAIL_TOKEN_PATH.format(user_id=user_id)
     status = upload_dict_as_json_to_s3(bucket_name, creds, object_name)
+    return status
+
+def init_agent(user_id, invoice_id, init_state):
+    """
+    Initialize agent
+
+    :param user_id: User id
+    :param invoice_id: Invoice id
+    :param init_state: Initial state
+    """
+
+
+    # create state_log file
+    object_name = fp.INVOICE_LOG_PATH.format(user_id=user_id, invoice_id=invoice_id)
+    status = upload_dict_as_json_to_s3(bucket_name, {"state_log": []}, object_name)
+
+    # create is_locked.json file and initialize it to False
+    object_name = fp.INVOICE_LOCKED_PATH.format(user_id=user_id, invoice_id=invoice_id)
+    status = upload_dict_as_json_to_s3(bucket_name, {"locked": False}, object_name)
+
+    # update agent_processes.json
+    status = update_agent_processes(user_id, invoice_id, "INIT")
+
+    bucket_name = fp.ROOT_BUCKET
+    object_name = fp.INVOICE_STATE_PATH.format(user_id=user_id, invoice_id=invoice_id)
+    status = upload_dict_as_json_to_s3(bucket_name, init_state, object_name)
+
+    log_state(user_id, invoice_id, "INIT_INVOICE_AGENT_LAMBDA", init_state)
     return status

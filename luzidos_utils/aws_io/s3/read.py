@@ -280,5 +280,16 @@ def read_email_token_from_s3(user_id):
     return email_token
 
 
+def read_agent_processes_from_s3(user_id):
+    """
+    Get agent processes for a user
 
-
+    :param user_id: User id
+    :return: List of agent processes
+    """
+    bucket_name = fp.ROOT_BUCKET
+    object_name = fp.USER_AGENT_PROCESSES_PATH.format(user_id=user_id)
+    agent_processes = read_json_from_s3(bucket_name, object_name)
+    if agent_processes is None:
+        agent_processes = {"open_agent_processes": [], "completed_agent_processes": [], "cancelled_agent_processes": []}
+    return agent_processes

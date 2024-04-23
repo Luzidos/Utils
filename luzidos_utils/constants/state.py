@@ -16,13 +16,14 @@ EMAIL_USER = "EMAIL_USER"
 MATCH_EMAIL = "MATCH_EMAIL"
 INIT_AGENT = "INIT_AGENT"
 
-INIT_STATE = {
+INIT_STATE_DATA = {
     "state": {
         "metadata":{
-            "current_state": "",
+            "current_state": INIT_AGENT,
             "state_update_queue": [],
             "unread_email_threads": [],
             "new_relevant_email_threads": [],
+            "relevant_email_threads": [],
             "timebombs": [],
             "birth_datetime": ""
         },

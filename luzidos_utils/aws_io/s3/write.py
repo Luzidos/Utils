@@ -368,7 +368,7 @@ def init_agent(user_id, invoice_id, init_state):
     :param invoice_id: Invoice id
     :param init_state: Initial state
     """
-
+    bucket_name = fp.ROOT_BUCKET
 
     # create state_log file
     object_name = fp.INVOICE_LOG_PATH.format(user_id=user_id, invoice_id=invoice_id)
@@ -381,7 +381,6 @@ def init_agent(user_id, invoice_id, init_state):
     # update agent_processes.json
     status = update_agent_processes(user_id, invoice_id, "INIT")
 
-    bucket_name = fp.ROOT_BUCKET
     object_name = fp.INVOICE_STATE_PATH.format(user_id=user_id, invoice_id=invoice_id)
     status = upload_dict_as_json_to_s3(bucket_name, init_state, object_name)
 

@@ -24,7 +24,7 @@ INIT_STATE_DATA = {
             "unread_email_threads": [],
             "new_relevant_email_threads": [],
             "relevant_email_threads": [],
-            "timebombs": [],
+            "timebombs": {},
             "birth_datetime": ""
         },
         "state_data": {}

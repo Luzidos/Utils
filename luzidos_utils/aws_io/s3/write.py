@@ -380,7 +380,7 @@ def init_agent(user_id, invoice_id, init_state):
     status = upload_dict_as_json_to_s3(bucket_name, {"locked": False}, object_name)
 
     # update agent_processes.json
-    status = update_agent_processes(user_id, invoice_id, "INIT")
+    status = update_agent_processes(user_id, invoice_id, INIT)
 
     object_name = fp.INVOICE_STATE_PATH.format(user_id=user_id, invoice_id=invoice_id)
     status = upload_dict_as_json_to_s3(bucket_name, init_state, object_name)

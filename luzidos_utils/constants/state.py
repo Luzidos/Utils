@@ -22,7 +22,7 @@ INIT_STATE_DATA = {
             "current_state": INIT_AGENT,
             "state_update_queue": [],
             "unread_email_threads": [],
-            "new_relevant_email_threads": [],
+            "unread_relevant_email_threads": [],
             "relevant_email_threads": [],
             "timebombs": {},
             "birth_datetime": ""
@@ -30,3 +30,7 @@ INIT_STATE_DATA = {
         "state_data": {}
     }
 }
+
+# Agent status
+INIT = "INIT"
+COMPLETE = "COMPLETE"

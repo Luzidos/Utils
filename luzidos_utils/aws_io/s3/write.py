@@ -6,6 +6,7 @@ from botocore.exceptions import ClientError
 from luzidos_utils.aws_io.s3 import file_paths as fp
 import datetime as dt
 from luzidos_utils.aws_io.s3 import read as s3_read
+from luzidos_utils.constants.state import INIT, COMPLETE
 
 #constants
 BUCKET_NAME = "luzidosdatadump"
@@ -327,7 +328,7 @@ def log_state(user_id, invoice_id, actor, state_data):
 
 # status can be INIT COMPLETE CANCEL
 # we should make this a constant
-def update_agent_processes(user_id, invoice_id, status="INIT"):
+def update_agent_processes(user_id, invoice_id, status=INIT):
     """
     Update open agent processes for a user
 
@@ -336,9 +337,9 @@ def update_agent_processes(user_id, invoice_id, status="INIT"):
     :param action: Action to perform
     """
     agent_processes = s3_read.read_agent_processes_from_s3(user_id)
-    if status == "INIT":
+    if status == INIT:
         agent_processes["open_agent_processes"].append(invoice_id)
-    elif status == "COMPLETE":
+    elif status == COMPLETE:
         agent_processes["open_agent_processes"].remove(invoice_id)
         agent_processes["completed_agent_processes"].append(invoice_id)
     else:

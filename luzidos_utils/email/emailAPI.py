@@ -44,6 +44,9 @@ class GmailClient:
     # Fetch messages based on the query - read/unread
     def upload_unread_messages_to_s3(self, query):
         """Get messages from the user's mailbox.
+        Uploads all of the unread messages to s3 in the format that I chose
+        It also uploads all of its relevant attachments to s3
+        It also applies ocr to the attachments and uploads the ocr data to s3
         Args:
             query: The query string used to filter messages.
         Returns:

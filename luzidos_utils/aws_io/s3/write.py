@@ -180,7 +180,7 @@ def update_invoice_state_field_in_s3(user_id, invoice_id, key, value):
             substate = substate[subkey]
 
     status = upload_dict_as_json_to_s3(bucket_name, state, object_name)
-    return stats_impor
+    return status
 def update_invoice_state_fields_in_s3(user_id, invoice_id, data):
     """
     Update invoice state field in S3 bucket
@@ -387,3 +387,17 @@ def init_agent(user_id, invoice_id, init_state):
 
     log_state(user_id, invoice_id, "INIT_INVOICE_AGENT_LAMBDA", init_state)
     return status
+
+def write_invoice_state_to_s3(user_id, invoice_id, state):
+    """
+    Write invoice state to S3 bucket
+
+    :param user_id: User id
+    :param invoice_id: Invoice id
+    :param state: Invoice state
+    """
+    bucket_name = fp.ROOT_BUCKET
+    object_name = fp.INVOICE_STATE_PATH.format(user_id=user_id, invoice_id=invoice_id)
+    status = upload_dict_as_json_to_s3(bucket_name, state, object_name)
+    return status
+

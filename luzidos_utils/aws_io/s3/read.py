@@ -95,6 +95,20 @@ def read_dir_filenames_from_s3(bucket_name, dir_name):
         return []
     return filenames
 
+def list_childdirectories(bucket_name, prefix):
+    """
+    List directories in a specific S3 bucket/prefix
+    """
+
+    s3_client = boto3.client('s3')
+    subfolders = []
+    try: 
+        response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=prefix, Delimiter='/')
+        for content in response.get('CommonPrefixes', []):
+            subfolders.append(content['Prefix'])
+    except Exception as e:
+        print(e)
+    return subfolders
 
 def read_invoice_data_from_s3(user_id, invoice_id, file_name):
     """
@@ -293,3 +307,22 @@ def read_agent_processes_from_s3(user_id):
     if agent_processes is None:
         agent_processes = {"open_agent_processes": [], "completed_agent_processes": [], "cancelled_agent_processes": []}
     return agent_processes
+
+
+def get_all_users():
+    """
+    Get all users
+
+    :return: List of user ids
+    """
+    # return list of all user ids
+    # user ids are all the subdirectories directly underneath USER_DIR_PATH
+    bucket_name = fp.ROOT_BUCKET
+    user_dir = fp.USERS_DIR_PATH
+
+    subdirectories = list_childdirectories(bucket_name, user_dir)
+
+    user_ids = [subdirectory.split("/")[1] for subdirectory in subdirectories]
+
+    return user_ids
+    

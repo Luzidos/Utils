@@ -17,6 +17,7 @@ EMAIL_ATTACHMENT_PATH = "public/{user_id}/emails/email_{email_id}/attachments/{a
 
 
 # user object path
+USERS_DIR_PATH = "public/{user_id}/user/"
 USER_DATA_PATH = "public/{user_id}/user/user_data.json"
 USER_AGENT_PROCESSES_PATH = "public/{user_id}/user/agent_processes.json"
 USER_EMAIL_CREDENTIALS_PATH = "public/{user_id}/user/email_credentials.json"

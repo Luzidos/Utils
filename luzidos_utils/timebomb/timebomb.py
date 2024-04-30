@@ -7,19 +7,21 @@ import uuid
 from dateutil.relativedelta import relativedelta
 import pytz
 from luzidos_utils.constants.aws import REGION_NAME
-def dispatch_timebomb(execution_datetime, state_update):
+def dispatch_timebomb(execution_datetime, timebomb_payload ):
     """
     Dispatches time bomb to be triggered at a later time
     """
     # Use the EventBridge client to put a scheduled event
     eventbridge = boto3.client('events', region_name=REGION_NAME)
     timebomb_id =  str(uuid.uuid4())
+    timebomb_payload["metadata"]["timebomb_id"] = timebomb_id
     rule_name = f"trigger-lambda-{timebomb_id}"
     response = eventbridge.put_rule(
         Name=rule_name,
         ScheduleExpression=f"cron({execution_datetime.minute} {execution_datetime.hour} {execution_datetime.day} {execution_datetime.month} ? {execution_datetime.year})",
         State='ENABLED',
     )
+
     
 
     # Add target to the rule
@@ -29,12 +31,12 @@ def dispatch_timebomb(execution_datetime, state_update):
             {
                 'Id': timebomb_id,
                 'Arn': 'arn:aws:lambda:us-west-2:385772193343:function:timebomb',
-                'Input': json.dumps(state_update)
+                'Input': json.dumps(timebomb_payload)
             },
         ]
     )
 
-    return timebomb_id
+    return timebomb_payload["metadata"]
 
 
 def cancel_timebomb(timebomb_id):
@@ -55,10 +57,11 @@ def clear_timebombs(thread_id, state_data):
     """
     Clears all timebombs associated with a thread
     """
-    for i, timebomb in enumerate(state_data["metadata"]["timebombs"][thread_id]):
+    for timebomb_id in state_data["metadata"]["timebombs"][thread_id]:
+        timebomb = state_data["metadata"]["timebombs"][thread_id][timebomb_id]
         if timebomb["status"] == ACTIVE:
             cancel_timebomb(timebomb["timebomb_id"])
-            state_data["metadata"]["timebombs"][thread_id][i]["status"] = CANCELLED
+            state_data["metadata"]["timebombs"][thread_id][timebomb_id]["status"] = CANCELLED
     return state_data
 
 def round_up_to_time(utc_datetime, time_tuple):
@@ -81,7 +84,7 @@ def round_up_to_time(utc_datetime, time_tuple):
     # Return the result in UTC
     return target_datetime.astimezone(pytz.utc)
 
-def set_countdown_timebomb(state_update, send_time=None, n_hours=24, n_days=0, n_weeks=0, n_months=0, n_years=0, type= None):
+def set_countdown_timebomb(timebomb_payload, send_time=None, n_hours=24, n_days=0, n_weeks=0, n_months=0, n_years=0, type= None):
     """
     Sets countdown time bomb
     Send time is the time when the time bomb should be triggered, within the next n_hours, n_days, n_weeks, n_months, or n_years
@@ -94,16 +97,19 @@ def set_countdown_timebomb(state_update, send_time=None, n_hours=24, n_days=0, n
     if send_time:
         # round_up_to_time(trigger_datetime, (12, 10, "America/Bogota"))
         trigger_datetime = round_up_to_time(trigger_datetime, send_time)
-    timebomb_id = dispatch_timebomb(trigger_datetime, state_update)
+
     if type == None:
         type = f"COUNTDOWN@{send_time}-{n_hours}H-{n_days}D-{n_weeks}W-{n_months}M-{n_years}Y"
-    return {
-            'timebomb_id': timebomb_id, 
-            'status': ACTIVE, 
-            'set_datetime': current_datetime.strftime(DATE_TIME_FORMAT),
-            'trigger_datetime': trigger_datetime.strftime(DATE_TIME_FORMAT),
-            'type': type
-            }
+
+    timebomb_payload["metadata"]["status"] = ACTIVE
+    timebomb_payload["metadata"]["set_datetime"] = current_datetime.strftime(DATE_TIME_FORMAT)
+    timebomb_payload["metadata"]["trigger_datetime"] = trigger_datetime.strftime(DATE_TIME_FORMAT)
+    timebomb_payload["metadata"]["type"] = type
+    timebomb_payload["metadata"]["timebomb_id"] = None
+
+    timebomb_metadata = dispatch_timebomb(trigger_datetime, timebomb_payload)
+
+    return timebomb_metadata
 
 def set_end_of_month_timebomb(state_update, send_time=None, n_days=3, business_days=True):
     """

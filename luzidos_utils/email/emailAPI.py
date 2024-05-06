@@ -103,7 +103,7 @@ class GmailClient:
             s3_write.upload_email_body_to_s3(self.user_id, threadObj['thread_id'], threadObj)
         return thread_ids
     
-    def send_message(self, sender, to, subject, body, attachments=None, cc=None):
+    def send_message(self, sender, to, subject, body, attachments=None, cc=None, thread_id=None, message_id=None):
         """Create and send an email message
         Print the returned  message id
         Returns: Message object, including message id
@@ -121,6 +121,10 @@ class GmailClient:
             if cc:
                 message["Cc"] = cc
 
+            if message_id:
+                message["In-Reply-To"] = message_id
+                message["References"] = message_id
+
             if attachments:
                 for file_path in attachments:
                     bucket_name = file_path.split('/')[0]
@@ -133,6 +137,8 @@ class GmailClient:
             encoded_message = base64.urlsafe_b64encode(message.as_bytes()).decode()
 
             create_message = {"raw": encoded_message}
+            if thread_id:
+                create_message["threadId"] = thread_id
             send_message = (
                 self.service.users()
                 .messages()
@@ -152,14 +158,11 @@ class GmailClient:
             thread = self.service.users().threads().get(userId="me", id=thread_id, format="metadata").execute()
             messages = thread['messages']
             last_message = messages[-1]
-
-            header = last_message['payload']['headers']
-
             # Prepare reply headers
             headers = {header['name']: header['value'] for header in last_message['payload']['headers']}
+            last_message_id = headers.get('Message-Id')
             subject = headers.get('Subject')
-            if not subject.startswith('Re:'):
-                subject = 'Re: ' + subject
+
             to = headers.get('From')  # Reply to sender
             if reply_all:
                 cc = headers.get('To', '') + ', ' + headers.get('Cc', '')
@@ -167,7 +170,16 @@ class GmailClient:
                 cc = None
 
             # Prepare and send the reply
-            return self.send_message(sender="me", to=to, subject=subject, body=body, attachments=attachments, cc=cc)
+            return self.send_message(
+                sender="me", 
+                to=to, 
+                subject=subject, 
+                body=body, 
+                attachments=attachments, 
+                cc=cc,
+                thread_id=thread_id,
+                message_id=last_message_id
+            )
         except HttpError as error:
             print(f"An error occurred: {error}")
             return None

@@ -401,3 +401,13 @@ def write_invoice_state_to_s3(user_id, invoice_id, state):
     status = upload_dict_as_json_to_s3(bucket_name, state, object_name)
     return status
 
+
+def write_transaction_data_to_s3(user_id, invoice_id, transaction_data):
+    """
+    Write transaction data to S3 bucket
+
+    :param user_id: User id
+    :param invoice_id: Invoice id
+    :param transaction_data: Transaction data
+    """
+    return upload_invoice_data_to_s3(user_id, invoice_id, transaction_data, "transaction")

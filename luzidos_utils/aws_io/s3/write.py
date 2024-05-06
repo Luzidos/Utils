@@ -411,3 +411,13 @@ def write_transaction_data_to_s3(user_id, invoice_id, transaction_data):
     :param transaction_data: Transaction data
     """
     return upload_invoice_data_to_s3(user_id, invoice_id, transaction_data, "transaction")
+
+def update_transaction_data_in_s3(user_id, invoice_id, new_transaction_data):
+    """
+    Update transaction data in S3 bucket
+
+    :param user_id: User id
+    :param invoice_id: Invoice id
+    :param new_transaction_data: New transaction data
+    """
+    return update_invoice_data_in_s3(user_id, invoice_id, new_transaction_data, "transaction")

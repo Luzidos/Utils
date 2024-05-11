@@ -349,7 +349,17 @@ def update_agent_processes(user_id, invoice_id, status=INIT):
     status = upload_dict_as_json_to_s3(bucket_name, agent_processes, object_name)
     return status
 
+def upload_email_token_to_s3(user_id, creds):
+    """
+    Upload email credentials to S3 bucket
 
+    :param user_id: User id
+    :param email_credentials: Email credentials
+    """
+    bucket_name = fp.ROOT_BUCKET
+    object_name = fp.USER_EMAIL_TOKEN_PATH.format(user_id=user_id)
+    status = upload_dict_as_json_to_s3(bucket_name, creds, object_name)
+    return status
 
 def init_agent(user_id, invoice_id, init_state):
     """

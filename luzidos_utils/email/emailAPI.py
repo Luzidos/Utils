@@ -34,9 +34,9 @@ BOLD = '\033[1m'
 UNDERLINE = '\033[4m'
 
 class GmailClient:
-    def __init__(self, credentials_file, scopes, user_id):
+    def __init__(self, token_data, credentials_data, scopes, user_id):
         self.service = None
-        self.creds = self.get_service_account_credentials(user_id, credentials_file, scopes)
+        self.creds = self.get_credentials(user_id, token_data, credentials_data, scopes)
         self.user_id = user_id
         if self.creds:
             self.service = build("gmail", "v1", credentials=self.creds)
@@ -290,21 +290,35 @@ class GmailClient:
 
 
 
-    def get_service_account_credentials(self, user_id, credentials_file, scopes):
+    def get_credentials(self, user_id,token_data, credentials_data, scopes):
         """
-        Retrieve Gmail API credentials using a service account.
-        :param credentials_file: Path to the service account JSON file.
+        Retrieve Gmail API credentials using in-memory data.
+        :param token_data: Dict with token information or None.
+        :param credentials_data: Dict with client credentials.
         :param scopes: Scopes needed for the Gmail API.
         :return: Credentials object.
         """
-        creds = Credentials.from_service_account_file(credentials_file, scopes=scopes)
+        creds = None
+        if token_data:
+            creds = Credentials.from_authorized_user_info(token_data, scopes)
+
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                flow = InstalledAppFlow.from_client_config(credentials_data, scopes)
+                creds = flow.run_local_server(port=0)
+
+            s3_write.upload_email_token_to_s3(user_id, json.loads(creds.to_json()))
+                
         return creds
 
 def get_gmail_client(user_id):
     scopes = ['https://www.googleapis.com/auth/gmail.modify']
 
-    credentials_file = s3_read.read_credentials_file_from_s3(user_id)
-    gmail_client = GmailClient(credentials_file, scopes, user_id)
+    token_data = s3_read.read_email_token_from_s3(user_id)
+    credentials_data = s3_read.read_email_credentials_from_s3(user_id)
+    gmail_client = GmailClient(token_data, credentials_data, scopes, user_id)
     return gmail_client
 
 # Usage

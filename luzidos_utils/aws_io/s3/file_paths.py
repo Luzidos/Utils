@@ -20,8 +20,7 @@ EMAIL_ATTACHMENT_PATH = "public/{user_id}/emails/email_{email_id}/attachments/{a
 USERS_DIR_PATH = "public/{user_id}/user/"
 USER_DATA_PATH = "public/{user_id}/user/user_data.json"
 USER_AGENT_PROCESSES_PATH = "public/{user_id}/user/agent_processes.json"
-USER_EMAIL_CREDENTIALS_PATH = "public/{user_id}/user/email_credentials.json"
-USER_EMAIL_TOKEN_PATH = "public/{user_id}/user/email_token.json"
+USER_EMAIL_SERVICE_ACCOUNT_PATH = "public/{user_id}/user/service_account.json"
 USER_CEDULA_PATH = "public/{user_id}/user/cedula.pdf"
 USER_RUT_PATH = "public/{user_id}/user/rut.pdf"
 

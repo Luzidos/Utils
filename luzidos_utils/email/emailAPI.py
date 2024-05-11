@@ -297,7 +297,7 @@ class GmailClient:
         :param scopes: Scopes needed for the Gmail API.
         :return: Credentials object.
         """
-        creds = Credentials.from_service_account_file(credentials_file, scopes=scopes)
+        creds = Credentials.from_service_account_info(credentials_file, scopes=scopes)
         return creds
 
 def get_gmail_client(user_id):

@@ -181,6 +181,7 @@ def update_invoice_state_field_in_s3(user_id, invoice_id, key, value):
 
     status = upload_dict_as_json_to_s3(bucket_name, state, object_name)
     return status
+
 def update_invoice_state_fields_in_s3(user_id, invoice_id, data):
     """
     Update invoice state field in S3 bucket
@@ -218,7 +219,7 @@ def update_invoice_contact_in_s3(user_id, invoice_id, new_contact, primary_conta
     """
     bucket_name = fp.ROOT_BUCKET
     object_name = fp.INVOICE_DATA_PATH.format(user_id=user_id, invoice_id=invoice_id, file_name="transaction")
-    transaction_json = s3_read.read_invoice_data_from_s3(bucket_name, user_id, invoice_id, "transaction")
+    transaction_json = s3_read.read_transaction_data_from_s3(user_id, invoice_id)
     if primary_contact:
         old_contact = transaction_json["vendor_details"]["vendor_email"]
         transaction_json["vendor_details"]["vendor_email"] = new_contact
@@ -227,7 +228,7 @@ def update_invoice_contact_in_s3(user_id, invoice_id, new_contact, primary_conta
         transaction_json["vendor_details"]["additional_vendor_contacts"].append({"vendor_email": new_contact, "status": "UNCHECKED_CONTACT"})
     if pop_first_alternate:
         transaction_json["vendor_details"]["additional_vendor_contacts"] = transaction_json["vendor_details"]["additional_vendor_contacts"][1:]
-    status = upload_dict_as_json_to_s3(bucket_name, transaction_json, object_name)
+    status = write_transaction_data_to_s3(user_id, invoice_id, transaction_json)
     return status
 
 

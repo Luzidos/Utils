@@ -218,7 +218,7 @@ def read_email_from_s3(user_id, thread_id, focused_message_id=None):
     # TODO incorporate attachments into each individual email message
     email_body = read_email_body_from_s3(user_id, thread_id)
     if focused_message_id == None:
-        focused_message_id = email_body["messages"][-1]
+        focused_message_id = list(email_body["messages"].keys())[-1]
     for message_id in email_body["messages"]:
         email_body["messages"][message_id]["attachments"] = []
         for attachment_id in email_body["messages"][message_id]["attachment_ids"]:

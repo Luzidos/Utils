@@ -217,8 +217,6 @@ def update_invoice_contact_in_s3(user_id, invoice_id, new_contact, primary_conta
     :param new_contact: New contact
     :param primary_contact: True if new contact is primary contact, else False
     """
-    bucket_name = fp.ROOT_BUCKET
-    object_name = fp.INVOICE_DATA_PATH.format(user_id=user_id, invoice_id=invoice_id, file_name="transaction")
     transaction_json = s3_read.read_transaction_data_from_s3(user_id, invoice_id)
     if primary_contact:
         old_contact = transaction_json["vendor_details"]["vendor_email"]

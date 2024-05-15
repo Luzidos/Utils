@@ -33,7 +33,7 @@ def get_gpt_response(prompt: str, model="gpt-3.5-turbo-0125", json_mode=False, r
     """
     api_key = os.getenv("OPENAI_API_KEY")  # Get API key from environment variable
     if not api_key:
-        raise ValueError("OpenAI API key not set in environment variables")
+        raise ValueError("OPENAI_API_KEY not set in environment variables")
 
     headers = {
         "Content-Type": "application/json",
@@ -43,7 +43,8 @@ def get_gpt_response(prompt: str, model="gpt-3.5-turbo-0125", json_mode=False, r
     data = {
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.7
+        "temperature": 0.7,
+        "response_format": "json_object" if json_mode else "text"
     }
 
     # if json_mode:

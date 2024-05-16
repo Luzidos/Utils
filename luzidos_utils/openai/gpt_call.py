@@ -13,7 +13,7 @@ This code interacts with the OpenAI GPT API.
 Allows querying different models and supports JSON mode.
 """
 
-def get_gpt_response(prompt: str, model="gpt-3.5-turbo-0125", json_mode=False, retries=3, backoff_factor=2)-> Dict[str, Any]:
+def get_gpt_response(prompt: str, model="gpt-4o", json_mode=False, retries=3, backoff_factor=2)-> Dict[str, Any]:
     """
     Queries the OpenAI API with a specified model and prompt.
     

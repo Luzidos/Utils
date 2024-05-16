@@ -223,7 +223,7 @@ def update_invoice_contact_in_s3(user_id, invoice_id, new_contact, primary_conta
         transaction_json["vendor_details"]["vendor_email"] = new_contact
         transaction_json["vendor_details"]["additional_vendor_contacts"].append({"vendor_email": old_contact, "status": "WRONG_CONTACT"})
     else:
-        transaction_json["vendor_details"]["additional_vendor_contacts"].append({"vendor_email": new_contact, "status": "UNCHECKED_CONTACT"})
+        transaction_json["vendor_details"]["additional_vendor_contacts"].append({"vendor_email": new_contact, "status": "NOT_CONTACTED"})
     if pop_first_alternate:
         transaction_json["vendor_details"]["additional_vendor_contacts"] = transaction_json["vendor_details"]["additional_vendor_contacts"][1:]
     status = write_transaction_data_to_s3(user_id, invoice_id, transaction_json)

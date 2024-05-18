@@ -43,17 +43,7 @@ def file_exists_in_s3(bucket_name, object_name):
     :param object_name: Object name in S3
     :return: True if exists, False otherwise
     """
-    s3_client = boto3.client('s3')
-    try:
-        s3_client.head_object(Bucket=bucket_name, Key=object_name)
-        return True
-    except ClientError as e:
-        # If a client error is thrown, check if it was because the file was not found
-        if e.response['Error']['Code'] == '404':
-            return False
-        else:
-            # If it's a different error, rethrow it
-            raise
+    return read_file_from_s3(bucket_name, object_name) is not None
 
 def read_json_from_s3(bucket_name, object_name):
     """
@@ -63,17 +53,10 @@ def read_json_from_s3(bucket_name, object_name):
     :param object_name: S3 object name
     :return: json data
     """
-    s3_client = boto3.client('s3')
-    try:
-        # Get the object from the S3 bucket
-        response = s3_client.get_object(Bucket=bucket_name, Key=object_name)
-        # Read the object contents
-        json_data = json.loads(response['Body'].read().decode())
-        print(f"File read successfully from {bucket_name}/{object_name}")
-    except Exception as e:
-        print(e, f"\nFile not found in {bucket_name}/{object_name}")
+    response = read_file_from_s3(bucket_name, object_name)
+    if response is None:
         return None
-    return json_data
+    return json.loads(response)
 
 def read_dir_filenames_from_s3(bucket_name, dir_name):
     """

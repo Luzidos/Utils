@@ -17,7 +17,7 @@ ROOT_USER_PATH = 'userid'
 """
 WRITE UTILS
 """
-def upload_file_to_s3(bucket_name, file_path, object_name):
+def upload_file_to_s3(file_path, bucket_name, object_name):
     """
     Upload a file to an S3 bucket
 
@@ -35,7 +35,7 @@ def upload_file_to_s3(bucket_name, file_path, object_name):
         return False
     return True
 
-def upload_file_obj_to_s3(bucket_name, file_obj, object_name):
+def upload_file_obj_to_s3(file_obj, bucket_name,  object_name):
     """
     Upload a file object to an S3 bucket
 
@@ -63,7 +63,7 @@ def upload_email_attachment_to_s3(user_id, email_id, file_obj, attachment_name):
     :return: True if file was uploaded, else False
     """
     object_name = fp.EMAIL_ATTACHMENT_PATH.format(user_id=user_id, email_id=email_id, attachment_name=attachment_name)
-    status = upload_file_obj_to_s3(fp.ROOT_BUCKET, file_obj, object_name)
+    status = upload_file_obj_to_s3(file_obj, fp.ROOT_BUCKET, object_name)
     return status
 
 def upload_email_attachment_json_to_s3(user_id, email_id, attachment_name, attachment_data):
@@ -241,7 +241,7 @@ def upload_invoice_file_to_s3(file_path, user_id, invoice_id, file_name):
     """
     bucket_name = fp.ROOT_BUCKET
     object_name = fp.INVOICE_FILE_PATH.format(user_id=user_id, invoice_id=invoice_id, file_name=file_name)
-    status = upload_file_to_s3(bucket_name, file_path, object_name)
+    status = upload_file_to_s3(file_path, bucket_name, object_name)
     return status
 
 def generate_invoice_id(invoice_id=None):

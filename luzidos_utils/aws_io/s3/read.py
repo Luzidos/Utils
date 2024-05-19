@@ -61,6 +61,9 @@ def read_json_from_s3(bucket_name, object_name):
 def read_dir_filenames_from_s3(bucket_name, dir_name):
     """
     Read filenames from a directory in an S3 bucket
+    This function is used to read all the filenames in a specific directory in an S3 bucket.
+    It returns a list of filenames, including the full path to the file object.
+    It returns all files in the directory, including files nested in subdirectories.
 
     :param bucket_name: Bucket to read from
     :param dir_name: S3 directory name
@@ -80,7 +83,10 @@ def read_dir_filenames_from_s3(bucket_name, dir_name):
 
 def list_childdirectories(bucket_name, prefix):
     """
-    List directories in a specific S3 bucket/prefix
+    List directories in a specific S3 bucket/prefix.
+    This function is used to list all the subdirectories in a specific directory in an S3 bucket.
+    It returns a list of subdirectores.
+    The subdirectories are returned as strings with the full path to the subdirectory object.
     """
 
     s3_client = boto3.client('s3')
@@ -301,11 +307,33 @@ def get_all_users():
     # return list of all user ids
     # user ids are all the subdirectories directly underneath USER_DIR_PATH
     bucket_name = fp.ROOT_BUCKET
-    user_dir = fp.USERS_DIR_PATH
 
-    subdirectories = list_childdirectories(bucket_name, user_dir)
+    subdirectories = list_childdirectories(bucket_name, "public/")
 
     user_ids = [subdirectory.split("/")[1] for subdirectory in subdirectories]
 
     return user_ids
     
+
+if __name__ == "__main__":
+    # test read functions
+    # print(read_file_from_s3(BUCKET_NAME, "public/1/invoices/invoice_1/files/1.pdf"))
+    # print(read_json_from_s3(BUCKET_NAME, "public/1/invoices/invoice_1/files/1.json"))
+    print(read_dir_filenames_from_s3(BUCKET_NAME, "public/"))
+    print(list_childdirectories(BUCKET_NAME, "public/"))
+    # print(read_invoice_data_from_s3(1, 1, "1.json"))
+    # print(read_invoice_state_from_s3(1, 1))
+    # print(read_transaction_data_from_s3(1, 1))
+    # print(read_einvoice_data_from_s3(1, 1))
+    # print(read_email_body_from_s3(1, 1))
+    # print(read_email_attachments_from_s3(1, 1))
+    # print(read_email_attachment_data_from_s3(1, 1, 1))
+    # print(read_email_from_s3(1, 1))
+    # print(read_user_data_from_s3(1))
+    # print(is_agent_locked(1, 1))
+    # print(get_open_agent_processes(1))
+    # print(read_email_credentials_from_s3(1))
+    # print(read_email_token_from_s3(1))
+    # print(read_agent_processes_from_s3(1))
+    # print(get_all_users())
+    pass

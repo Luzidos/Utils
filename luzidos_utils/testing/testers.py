@@ -82,7 +82,7 @@ class BaseTest(unittest.TestCase):
         return patch.multiple(
             'luzidos_utils.aws_io.s3.write',
             upload_file_to_s3=mock_s3.mock_upload_file_to_s3,
-            upload_fileobj_to_s3=mock_s3.mock_upload_fileobj_to_s3,
+            upload_file_obj_to_s3=mock_s3.mock_upload_file_obj_to_s3,
             upload_dict_as_json_to_s3=mock_s3.mock_upload_dict_as_json_to_s3,
             copy_file=mock_s3.mock_copy_file
         )

@@ -47,12 +47,12 @@ class BaseTest(unittest.TestCase):
         test_method.__name__ = f'test_{test_name}'
         setattr(self, test_method.__name__, test_method)
 
-    def run_test_cases(self):
-        for test_config_path in self.load_test_config_paths():
-            test_name = test_config_path[len(self.test_configs_dir):]
-            payload, mock_data, expected_data = self.load_test_data(test_config_path)
-            with self.subTest(msg=test_name):
-                self.run_test_case(payload, mock_data, expected_data)
+    # def run_test_cases(self):
+    #     for test_config_path in self.load_test_config_paths():
+    #         test_name = test_config_path[len(self.test_configs_dir):]
+    #         payload, mock_data, expected_data = self.load_test_data(test_config_path)
+    #         with self.subTest(msg=test_name):
+    #             self.run_test_case(payload, mock_data, expected_data)
             
 
     

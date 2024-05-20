@@ -44,7 +44,9 @@ def get_gpt_response(prompt: str, model="gpt-4o", json_mode=False, retries=3, ba
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.7,
-        "response_format": "json_object" if json_mode else "text"
+        "response_format": {
+            "type": "json_object" if json_mode else "text"
+        }
     }
 
     # if json_mode:

@@ -31,7 +31,7 @@ class BaseTest(unittest.TestCase):
     ******************************************************************
     """
 
-    def tests_wrapper(self):
+    def test_wrapper(self):
         for test_config_path in self.load_test_config_paths():
             test_name = test_config_path[len(self.test_configs_dir):]
             payload, mock_data, expected_data = self.load_test_data(test_config_path)

@@ -19,7 +19,7 @@ def load_test_config_paths(test_configs_dir):
                 test_config_paths.append(os.path.join(root, file))
     return test_config_paths
 
-def create_module_tests(function_to_test, test_configs_dir):
+def create_module_test_cases(function_to_test, test_configs_dir):
     test_config_paths = load_test_config_paths(test_configs_dir)
     test_instances = []
     for test_config_path in test_config_paths:
@@ -95,8 +95,8 @@ class BaseTest(unittest.TestCase):
 
 
 class ModuleTest(BaseTest):
-    def __init__(self, function_to_test, test_configs_dir):
-        super().__init__(function_to_test, test_configs_dir)
+    def __init__(self, function_to_test, test_config_dir):
+        super().__init__(function_to_test, test_config_dir)
     
     def setup(self):
         self.mock_s3 = None

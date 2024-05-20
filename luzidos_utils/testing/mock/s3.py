@@ -1,4 +1,5 @@
 import os
+import json
 
 class MockS3:
     def __init__(self, mock_s3_data: dict):
@@ -21,15 +22,16 @@ class MockS3:
         for key in object_name.split("/"):
             data = data[key]
 
-        res = str(data)
-
+        if isinstance(data, dict):
+            return json.dumps(data)
+        
+        
         # If file is a valid file path, then read the file
-        if os.path.isfile(res):
-            with open(res, "r") as f:
+        if os.path.isfile(str(data)):
+            with open(str(data), "r") as f:
                 data = f.read()
                 return data
-        else:
-            return res
+        return data
 
     def mock_read_dir_filenames_from_s3(self, bucket_name, dir_name):
         """
@@ -139,7 +141,7 @@ class MockS3:
         for part in path_parts[:-1]:
             current_level = current_level.setdefault(part, {})
 
-        current_level[path_parts[-1]] = str(dict_data)
+        current_level[path_parts[-1]] = dict_data
         return True
     
     def mock_copy_file(self, bucket_name, source_file, dest_file):
@@ -151,7 +153,7 @@ class MockS3:
         for key in source_file.split("/"):
             data = data[key]
 
-        source_content = str(data)
+        source_content = data
 
         current_level = self.mock_s3_data.setdefault(bucket_name, {})
         path_parts = dest_file.strip('/').split('/')

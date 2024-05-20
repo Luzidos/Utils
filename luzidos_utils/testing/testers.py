@@ -10,6 +10,7 @@ from luzidos_utils.aws_io.s3 import write
 
 class BaseTest(unittest.TestCase):
     def __init__(self, function_to_test, test_configs_dir):
+        super().__init__("run_test_cases")
         self.function_to_test = function_to_test
         self.test_configs_dir = test_configs_dir
     
@@ -31,7 +32,7 @@ class BaseTest(unittest.TestCase):
     ******************************************************************
     """
 
-    def test_wrapper(self):
+    def run_test_cases(self):
         for test_config_path in self.load_test_config_paths():
             test_name = test_config_path[len(self.test_configs_dir):]
             payload, mock_data, expected_data = self.load_test_data(test_config_path)
@@ -115,6 +116,7 @@ class ModuleTest(BaseTest):
             self.state_data = self.function_to_test(self.user_id, self.invoice_id, self.state_data)
         
         self.assert_state_data()
+
 
     """
     ******************************************************************

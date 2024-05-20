@@ -48,6 +48,9 @@ class BaseTest(unittest.TestCase):
     def run_test_case(self):
         raise NotImplementedError
     
+    def __str__(self):
+        raise NotImplementedError
+    
 
     """
     ******************************************************************
@@ -97,14 +100,10 @@ class BaseTest(unittest.TestCase):
 class ModuleTest(BaseTest):
     def __init__(self, function_to_test, test_config_dir):
         super().__init__(function_to_test, test_config_dir)
+        self.module_name = self.function_to_test.__name__
     
     def setup(self):
-        self.mock_s3 = None
-        self.user_id = None
-        self.invoice_id = None
-        self.state_data = None
-        self.expected_state = None
-        self.module_name = None
+        pass
 
     def run_test_case(self):
         self.user_id = self.payload["user_id"]
@@ -115,7 +114,7 @@ class ModuleTest(BaseTest):
         self.mock_s3 = MockS3(self.mock_data["mock_s3_data"])
         self.expected_mock_s3 = MockS3(self.expected_data["expected_s3_data"])
 
-        self.module_name = self.function_to_test.__name__
+        
 
         with self.patch_s3_read(self.mock_s3), \
             self.patch_s3_write(self.mock_s3):
@@ -157,3 +156,7 @@ class ModuleTest(BaseTest):
         msg = f"Luzidosdatadump data does not match expected data after running {self.module_name}"
 
         self.assertDictEqual(self.mock_s3.mock_s3_data, self.expected_mock_s3.mock_s3_data, msg=msg)
+
+    def __str__(self):
+        test_name = self.test_config_path.split("configs/")[1]
+        return f"Module Test: {test_name}"

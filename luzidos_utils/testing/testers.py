@@ -8,12 +8,34 @@ import os
 from luzidos_utils.aws_io.s3 import read
 from luzidos_utils.aws_io.s3 import write
 
+def load_test_config_paths(test_configs_dir):
+    """
+        Load all .py files in the test_configs_dir. Load files from subdirectories as well.
+    """
+    test_config_paths = []
+    for root, dirs, files in os.walk(test_configs_dir):
+        for file in files:
+            if file.endswith(".py") and not file.startswith("."):
+                test_config_paths.append(os.path.join(root, file))
+    return test_config_paths
+
+def create_module_tests(function_to_test, test_configs_dir):
+    test_config_paths = load_test_config_paths(test_configs_dir)
+    test_instances = []
+    for test_config_path in test_config_paths:
+        test_instances.append(ModuleTest(function_to_test, test_config_path))
+    return test_instances
+
 class BaseTest(unittest.TestCase):
-    def __init__(self, function_to_test, test_configs_dir):
-        super().__init__()
+    def __init__(self, function_to_test, test_config_path):
+        super().__init__("run_test_case")
         self.function_to_test = function_to_test
-        self.test_configs_dir = test_configs_dir
-        self.load_and_create_tests()
+        self.test_config_path = test_config_path
+        self.payload = None
+        self.mock_data = None
+        self.expected_data = None
+
+        self.load_test_data(self.test_config_path)
     
     """
     ******************************************************************
@@ -23,7 +45,7 @@ class BaseTest(unittest.TestCase):
     def setup(self):
         raise NotImplementedError
     
-    def run_test_case(self, function_to_test, payload, mock_data, expected_data):
+    def run_test_case(self):
         raise NotImplementedError
     
 
@@ -32,42 +54,8 @@ class BaseTest(unittest.TestCase):
                         Util Functions
     ******************************************************************
     """
-
-
-    def load_and_create_tests(self):
-        test_config_paths = self.load_test_config_paths()
-        for test_config_path in test_config_paths:
-            test_name = test_config_path[len(self.test_configs_dir):].replace('/', '_').replace('.py', '')
-            payload, mock_data, expected_data = self.load_test_data(test_config_path)
-            self.create_test_method(test_name, payload, mock_data, expected_data)
-    
-    def create_test_method(self, test_name, payload, mock_data, expected_data):
-        def wrapper_test_method(self):
-            self.run_test_case(self.function_to_test, payload, mock_data, expected_data)
-        wrapper_test_method.__name__ = f'test_{test_name}'
-        setattr(self, wrapper_test_method.__name__, wrapper_test_method)
-
-    # def run_test_cases(self):
-    #     for test_config_path in self.load_test_config_paths():
-    #         test_name = test_config_path[len(self.test_configs_dir):]
-    #         payload, mock_data, expected_data = self.load_test_data(test_config_path)
-    #         with self.subTest(msg=test_name):
-    #             self.run_test_case(payload, mock_data, expected_data)
-            
-
     
 
-    def load_test_config_paths(self):
-        """
-            Load all .py files in the test_configs_dir. Load files from subdirectories as well.
-        """
-        test_config_paths = []
-        for root, dirs, files in os.walk(self.test_configs_dir):
-            for file in files:
-                if file.endswith(".py") and not file.startswith("."):
-                    test_config_paths.append(os.path.join(root, file))
-        return test_config_paths
-        
     def load_test_data(self, test_config_path):
         with open(test_config_path, 'r') as file:
             file_contents = file.read()
@@ -75,10 +63,11 @@ class BaseTest(unittest.TestCase):
         exec(file_contents, {}, test_configs)
         test_data = test_configs.get('test_configs')
         
-        payload = test_data["payload"]
-        mock_data = test_data["mock_data"]
-        expected_data = test_data["expected_data"]
-        return payload, mock_data, expected_data
+        self.payload = test_data["payload"]
+        self.mock_data = test_data["mock_data"]
+        self.expected_data = test_data["expected_data"]
+        
+
 
     """
     ******************************************************************
@@ -117,14 +106,14 @@ class ModuleTest(BaseTest):
         self.expected_state = None
         self.module_name = None
 
-    def run_test_case(self, payload, mock_data, expected_data):
-        self.user_id = payload["user_id"]
-        self.invoice_id = payload["invoice_id"]
-        self.state_data = payload["state_data"]
-        self.expected_state = expected_data["expected_state"]
+    def run_test_case(self):
+        self.user_id = self.payload["user_id"]
+        self.invoice_id = self.payload["invoice_id"]
+        self.state_data = self.payload["state_data"]
+        self.expected_state = self.expected_data["expected_state"]
 
-        self.mock_s3 = MockS3(mock_data["mock_s3_data"])
-        self.expected_mock_s3 = MockS3(expected_data["expected_s3_data"])
+        self.mock_s3 = MockS3(self.mock_data["mock_s3_data"])
+        self.expected_mock_s3 = MockS3(self.expected_data["expected_s3_data"])
 
         self.module_name = self.function_to_test.__name__
 

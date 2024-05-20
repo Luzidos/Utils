@@ -10,9 +10,10 @@ from luzidos_utils.aws_io.s3 import write
 
 class BaseTest(unittest.TestCase):
     def __init__(self, function_to_test, test_configs_dir):
-        super().__init__("run_test_cases")
+        super().__init__()
         self.function_to_test = function_to_test
         self.test_configs_dir = test_configs_dir
+        self.load_and_create_tests()
     
     """
     ******************************************************************
@@ -31,6 +32,20 @@ class BaseTest(unittest.TestCase):
                         Util Functions
     ******************************************************************
     """
+
+
+    def load_and_create_tests(self):
+        test_config_paths = self.load_test_config_paths()
+        for test_config_path in test_config_paths:
+            test_name = test_config_path[len(self.test_configs_dir):].replace('/', '_').replace('.py', '')
+            payload, mock_data, expected_data = self.load_test_data(test_config_path)
+            self.create_test_method(test_name, payload, mock_data, expected_data)
+    
+    def create_test_method(self, test_name, payload, mock_data, expected_data):
+        def test_method(self):
+            self.run_test_case(self.function_to_test, payload, mock_data, expected_data)
+        test_method.__name__ = f'test_{test_name}'
+        setattr(self, test_method.__name__, test_method)
 
     def run_test_cases(self):
         for test_config_path in self.load_test_config_paths():

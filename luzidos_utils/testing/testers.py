@@ -36,7 +36,7 @@ class BaseTest(unittest.TestCase):
         for test_config_path in self.load_test_config_paths():
             test_name = test_config_path[len(self.test_configs_dir):]
             payload, mock_data, expected_data = self.load_test_data(test_config_path)
-            with self.subTest(test_name):
+            with self.subTest(msg=test_name):
                 self.run_test_case(payload, mock_data, expected_data)
             
 

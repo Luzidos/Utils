@@ -111,11 +111,16 @@ class ModuleTest(BaseTest):
         self.mock_s3 = MockS3(mock_data["mock_s3_data"])
         self.expected_mock_s3 = MockS3(expected_data["expected_s3_data"])
 
+        self.module_name = self.function_to_test.__name__
+
         with self.patch_s3_read(self.mock_s3), \
             self.patch_s3_write(self.mock_s3):
             self.state_data = self.function_to_test(self.user_id, self.invoice_id, self.state_data)
         
         self.assert_state_data()
+        self.assert_transaction_data()
+        self.assert_user_data()
+        self.assert_s3_data()
 
 
     """

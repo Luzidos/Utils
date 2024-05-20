@@ -42,10 +42,10 @@ class BaseTest(unittest.TestCase):
             self.create_test_method(test_name, payload, mock_data, expected_data)
     
     def create_test_method(self, test_name, payload, mock_data, expected_data):
-        def test_method(self):
+        def wrapper_test_method(self):
             self.run_test_case(self.function_to_test, payload, mock_data, expected_data)
-        test_method.__name__ = f'test_{test_name}'
-        setattr(self, test_method.__name__, test_method)
+        wrapper_test_method.__name__ = f'test_{test_name}'
+        setattr(self, wrapper_test_method.__name__, wrapper_test_method)
 
     # def run_test_cases(self):
     #     for test_config_path in self.load_test_config_paths():

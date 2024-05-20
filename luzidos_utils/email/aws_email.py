@@ -16,11 +16,13 @@ def upload_unread_messages_to_s3(user_id, query):
     Returns:
         A dictionary of messages.
     """
-    pass
+
     # Pseudocode
 
     # Get the email
-    # agent_email = s3_read.get_email(user_id)
+    agent_email = s3_read.get_user_email(user_id)
+    print(agent_email)
+    return
 
     # Get the unread messages
     # unread_messages = amazone_ses.get_unread_messages(agent_email, query)
@@ -150,15 +152,17 @@ if __name__ == "__main__":
     print('This is a test. ')
     pass
     # Example usage
-    # upload_unread_messages_to_s3("123", "unread")
-    send_message(
-        from_address='tiberio@luzidos.com',
-        to_address='tiberiomalaiud@gmail.com',
-        subject='Hello World',
-        body='This is a test email.',
-        attachments=[{'filename': 'test.txt', 'content': 'SGVsbG8gd29ybGQ='}],  # Example attachment
-        cc='andres.carranza@stanford.edu',
-    )
+    upload_unread_messages_to_s3("927aa041-e5ba-4acf-ab0e-19a1c629bee9", None) # Tiberio User ID
+
+    # send_message(
+    #     from_address='tiberio@luzidos.com',
+    #     to_address='tiberiomalaiud@gmail.com',
+    #     subject='Hello World',
+    #     body='This is a test email.',
+    #     # attachments=[{'filename': 'test.txt', 'content': 'SGVsbG8gd29ybGQ='}],  
+    #     cc='acarrnza@stanford.edu',
+    # )
+
     # reply_to_message(
     #     thread_id='&lt;existing_message_id&gt;',
     #     body='Here is my reply to the email thread.',

@@ -230,6 +230,19 @@ def read_user_data_from_s3(user_id):
     user_data = read_json_from_s3(bucket_name, object_name)
     return user_data
 
+def get_user_email(user_id):
+    """
+    Read user Agent Email address from User Data Json
+
+    :param bucket_name: Name of the S3 bucket
+    :param user_id: User id
+    :return: email Address
+    """
+    userData = read_user_data_from_s3(user_id)
+    return userData["custom:agentEmail"]
+        
+
+
 def is_agent_locked(user_id, invoice_id):
     """
     Check if agent execution is locked

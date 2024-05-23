@@ -239,7 +239,9 @@ def get_user_email(user_id):
     :return: email Address
     """
     userData = read_user_data_from_s3(user_id)
-    return userData["custom:agentEmail"]
+    if userData and "custom:agentEmail" in userData:
+        return userData["custom:agentEmail"]
+    return None
         
 
 

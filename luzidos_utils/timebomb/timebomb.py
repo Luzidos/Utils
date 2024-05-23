@@ -57,11 +57,11 @@ def clear_timebombs(thread_id, state_data):
     """
     Clears all timebombs associated with a thread
     """
-    for timebomb_id in state_data["metadata"]["timebombs"][thread_id]:
-        timebomb = state_data["metadata"]["timebombs"][thread_id][timebomb_id]
+    for timebomb_id in state_data["state"]["metadata"]["timebombs"][thread_id]:
+        timebomb = state_data["state"]["metadata"]["timebombs"][thread_id][timebomb_id]
         if timebomb["status"] == ACTIVE:
             cancel_timebomb(timebomb["timebomb_id"])
-            state_data["metadata"]["timebombs"][thread_id][timebomb_id]["status"] = CANCELLED
+            state_data["state"]["metadata"]["timebombs"][thread_id][timebomb_id]["status"] = CANCELLED
     return state_data
 
 def round_up_to_time(utc_datetime, time_tuple):

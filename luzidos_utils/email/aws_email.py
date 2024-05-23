@@ -21,7 +21,7 @@ def upload_unread_messages_to_s3(user_id, query):
 
     # Get the email
     agent_email = s3_read.get_user_email(user_id)
-    print(agent_email)
+
     return
 
     # Get the unread messages

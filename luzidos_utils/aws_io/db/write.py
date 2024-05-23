@@ -1,9 +1,11 @@
 import requests
+import boto3
+from botocore.exceptions import ClientError
 
 def update_invoice_status(user_id, invoice_id, status):
-    url = 'https://b7843zphhl.execute-api.us-west-2.amazonaws.com/prod'  # Use the actual URL here
+    url = 'https://b7843zphhl.execute-api.us-west-2.amazonaws.com/prod'  
     headers = {
-        'x-api-key': 'CVsju5YkVA68kGdcAATjL6GjXxdYbxjr6Nhp9L2L'  # Replace YOUR_API_KEY_HERE with your actual API key
+        'x-api-key': 'CVsju5YkVA68kGdcAATjL6GjXxdYbxjr6Nhp9L2L' 
     }
     body = {
         "operation": "m.odify",
@@ -21,3 +23,35 @@ def update_invoice_status(user_id, invoice_id, status):
     else:
         # Handle potential error cases here depending on how you want to deal with them
         return 'Error updating entry status', response.status_code
+    
+
+def write_to_dynamodb(email, value):
+    # Initialize a session using Amazon DynamoDB
+    dynamodb = boto3.resource('dynamodb')
+
+    # Select your table
+    table = dynamodb.Table('emailToUserId')
+
+    # Put the item into the table
+    try:
+        response = table.put_item(
+            Item={
+                'email': email,
+                'value': value
+            }
+        )
+        return response
+    except ClientError as e:
+        print(e.response['Error']['Message'])
+        return None
+
+
+
+if __name__ == "__main__":
+    # Test here.
+    # print(write_to_dynamodb('email@example.com', '6HFJ-63U-HH'))
+    
+    
+    
+    
+    

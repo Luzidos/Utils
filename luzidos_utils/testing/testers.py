@@ -34,7 +34,7 @@ class BaseTest(unittest.TestCase):
         self.payload = None
         self.mock_data = None
         self.expected_data = None
-
+        self.maxDiff = None
         self.load_test_data(self.test_config_path)
     
     """

@@ -123,7 +123,7 @@ def upload_invoice_data_to_s3(user_id, invoice_id, invoice_data, data_type):
     :param invoice_data: Invoice data
     """
     bucket_name = fp.ROOT_BUCKET
-    object_name = fp.INVOICE_DATA_PATH.format(user_id=user_id, invoice_id=invoice_id, data_type=data_type)
+    object_name = fp.INVOICE_DATA_PATH.format(user_id=user_id, invoice_id=invoice_id, file_name=data_type)
     status = upload_dict_as_json_to_s3(bucket_name, invoice_data, object_name)
     return status
 

@@ -142,7 +142,7 @@ def read_einvoice_data_from_s3(user_id, invoice_id):
     :return: Einvoice data
     """
     bucket_name = fp.ROOT_BUCKET
-    object_name = fp.INVOICE_EINVOICE_PATH.format(user_id=user_id, invoice_id=invoice_id)
+    object_name = fp.INVOICE_EINVOICE_DATA_PATH.format(user_id=user_id, invoice_id=invoice_id)
     einvoice_data = read_json_from_s3(bucket_name, object_name)
     return einvoice_data
 

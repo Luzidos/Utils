@@ -22,7 +22,7 @@ def load_test_config_paths(test_configs_dir):
 def create_module_test_cases(function_to_test, test_configs_dir):
     test_config_paths = load_test_config_paths(test_configs_dir)
     test_instances = []
-    for test_config_path in test_config_paths:
+    for test_config_path in sorted(test_config_paths):
         test_instances.append(ModuleTest(function_to_test, test_config_path))
     return test_instances
 
@@ -159,4 +159,4 @@ class ModuleTest(BaseTest):
 
     def __str__(self):
         test_name = self.test_config_path.split("configs/")[1]
-        return f"Module Test: {test_name}"
+        return f"ModuleTest: {test_name}"

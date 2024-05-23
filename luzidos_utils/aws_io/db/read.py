@@ -1,7 +1,7 @@
 import boto3
 from botocore.exceptions import ClientError
 
-def read_from_dynamodb(email):
+def read_email_and_user_from_db(email):
     # Initialize a session using Amazon DynamoDB
     dynamodb = boto3.resource('dynamodb')
 
@@ -27,4 +27,4 @@ def read_from_dynamodb(email):
 
 if __name__ == "__main__":
     # Test here.
-    #print(read_from_dynamodb('luzidos@luzidos.com'))
+    # print(read_email_and_user_from_db('luzidos@luzidos.com'))

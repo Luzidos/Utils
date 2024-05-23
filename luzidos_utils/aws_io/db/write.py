@@ -25,7 +25,7 @@ def update_invoice_status(user_id, invoice_id, status):
         return 'Error updating entry status', response.status_code
     
 
-def write_to_dynamodb(email, value):
+def add_email_and_user_to_db(email, value):
     # Initialize a session using Amazon DynamoDB
     dynamodb = boto3.resource('dynamodb')
 
@@ -49,7 +49,7 @@ def write_to_dynamodb(email, value):
 
 if __name__ == "__main__":
     # Test here.
-    # print(write_to_dynamodb('email@example.com', '6HFJ-63U-HH'))
+    # print(add_email_and_user_to_db('email@example.com', '6HFJ-63U-HH'))
     
     
     

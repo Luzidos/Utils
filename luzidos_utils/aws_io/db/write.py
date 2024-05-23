@@ -46,10 +46,6 @@ def add_email_and_user_to_db(email, value):
         return None
 
 
-
-if __name__ == "__main__":
-    # Test here.
-    # print(add_email_and_user_to_db('email@example.com', '6HFJ-63U-HH'))
     
     
     

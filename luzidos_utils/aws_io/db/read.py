@@ -25,6 +25,3 @@ def get_user_from_db(email):
         return None
     
 
-if __name__ == "__main__":
-    # Test here.
-    # print(get_user_from_db('luzidos@luzidos.com'))

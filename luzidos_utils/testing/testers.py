@@ -99,8 +99,8 @@ class BaseTest(unittest.TestCase):
     
     def patch_boto3_client(self, mock_boto3):
         return patch(
-            'boto3', 
-            client=mock_boto3.mock_client     
+            'boto3.client', 
+           new=mock_boto3.mock_client 
         )
 
 
@@ -123,8 +123,6 @@ class ModuleTest(BaseTest):
         self.expected_mock_s3 = MockS3(self.expected_data["expected_s3_data"])
 
         self.mock_boto3 = MockBoto3(self.mock_data["mock_boto3_data"])
-
-        
 
         with self.patch_s3_read(self.mock_s3), \
             self.patch_s3_write(self.mock_s3), \

@@ -12,11 +12,11 @@ def dispatch_timebomb(execution_datetime, timebomb_payload ):
     Dispatches time bomb to be triggered at a later time
     """
     # Use the EventBridge client to put a scheduled event
-    eventbridge = boto3.client('events', region_name=REGION_NAME)
+    client = boto3.client('events', region_name=REGION_NAME)
     timebomb_id =  str(uuid.uuid4())
     timebomb_payload["metadata"]["timebomb_id"] = timebomb_id
     rule_name = f"trigger-lambda-{timebomb_id}"
-    response = eventbridge.put_rule(
+    response = client.put_rule(
         Name=rule_name,
         ScheduleExpression=f"cron({execution_datetime.minute} {execution_datetime.hour} {execution_datetime.day} {execution_datetime.month} ? {execution_datetime.year})",
         State='ENABLED',
@@ -25,7 +25,7 @@ def dispatch_timebomb(execution_datetime, timebomb_payload ):
     
 
     # Add target to the rule
-    target_response = eventbridge.put_targets(
+    target_response = client.put_targets(
         Rule=rule_name,
         Targets=[
             {

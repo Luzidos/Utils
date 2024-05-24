@@ -4,9 +4,11 @@ import unittest
 from unittest.mock import patch
 import copy
 from luzidos_utils.testing.mock.s3 import MockS3
+from luzidos_utils.testing.mock.boto3 import MockBoto3
 import os
 from luzidos_utils.aws_io.s3 import read
 from luzidos_utils.aws_io.s3 import write
+
 
 def load_test_config_paths(test_configs_dir):
     """
@@ -94,6 +96,12 @@ class BaseTest(unittest.TestCase):
             upload_dict_as_json_to_s3=mock_s3.mock_upload_dict_as_json_to_s3,
             copy_file=mock_s3.mock_copy_file
         )
+    
+    def patch_boto3_client(self, mock_boto3):
+        return patch(
+            'boto3', 
+            client=mock_boto3.mock_client     
+        )
 
 
 
@@ -114,10 +122,13 @@ class ModuleTest(BaseTest):
         self.mock_s3 = MockS3(self.mock_data["mock_s3_data"])
         self.expected_mock_s3 = MockS3(self.expected_data["expected_s3_data"])
 
+        self.mock_boto3 = MockBoto3(self.mock_data["mock_boto3_data"])
+
         
 
         with self.patch_s3_read(self.mock_s3), \
-            self.patch_s3_write(self.mock_s3):
+            self.patch_s3_write(self.mock_s3), \
+            self.patch_boto3_client(self.mock_boto3):
             self.state_data = self.function_to_test(self.user_id, self.invoice_id, self.state_data)
         
         self.assert_state_data()

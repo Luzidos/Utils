@@ -273,7 +273,7 @@ def copy_file(bucket_name, source_file, dest_file):
         return False
     return True
 
-def copy_einvoice_to_invoice_dir(user_id, invoice_id, einvoice_filename):
+def copy_einvoice_to_invoice_dir(user_id, invoice_id,thread_id, einvoice_filename):
     """
     Copy einvoice to invoice directory in S3 bucket
 
@@ -282,7 +282,7 @@ def copy_einvoice_to_invoice_dir(user_id, invoice_id, einvoice_filename):
     :param einvoice_filename: Einvoice filename
     """
     bucket_name = fp.ROOT_BUCKET
-    source_file = fp.EMAIL_ATTACHMENT_PATH.format(user_id=user_id, email_id=invoice_id, attachment_name=einvoice_filename)
+    source_file = fp.EMAIL_ATTACHMENT_PATH.format(user_id=user_id, email_id=thread_id, attachment_name=einvoice_filename)
     dest_file = fp.INVOICE_EINVOICE_PATH.format(user_id=user_id, invoice_id=invoice_id)
     status = copy_file(bucket_name, source_file, dest_file)
     return status

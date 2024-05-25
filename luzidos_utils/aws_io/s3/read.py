@@ -180,7 +180,7 @@ def read_email_attachments_from_s3(user_id, thread_id):
             email_attachments.append(attachment)
     return email_attachments
 
-def read_email_attachment_data_from_s3(user_id, thread_id, attachment_id, read_description=True):
+def read_email_attachment_data_from_s3(user_id, thread_id, attachment_id):
     """
     Read email attachments from S3 bucket
 
@@ -192,9 +192,10 @@ def read_email_attachment_data_from_s3(user_id, thread_id, attachment_id, read_d
     attachment_path = fp.EMAIL_ATTACHMENT_PATH.format(user_id=user_id, email_id=thread_id, attachment_name=f"{attachment_id}.json")
     email_attachments = []
     attachment_data = read_json_from_s3(bucket_name, attachment_path)
-    if read_description:
-        return attachment_data["attachment_description"]
-    return attachment_data["attachment_OCR"]
+    return attachment_data
+    # if read_description:
+    #     return attachment_data["attachment_description"]
+    # return attachment_data["attachment_OCR"]
 
 def read_email_from_s3(user_id, thread_id, focused_message_id=None):
     """
@@ -211,9 +212,12 @@ def read_email_from_s3(user_id, thread_id, focused_message_id=None):
     for message_id in email_body["messages"]:
         email_body["messages"][message_id]["attachments"] = []
         for attachment_id in email_body["messages"][message_id]["attachment_ids"]:
-            read_description = focused_message_id != message_id
-            attachment_data = read_email_attachment_data_from_s3(user_id, thread_id, attachment_id, read_description=read_description)
-            email_body["messages"][message_id]["attachments"].append(attachment_data)
+            attachment_data = read_email_attachment_data_from_s3(user_id, thread_id, attachment_id)
+            if focused_message_id == message_id:
+                attachment_info = attachment_data["attachment_OCR"]
+            else:
+                attachment_info = attachment_data["attachment_description"]
+            email_body["messages"][message_id]["attachments"].append(attachment_info)
 
     return email_body
 

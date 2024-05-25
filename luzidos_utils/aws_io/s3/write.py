@@ -283,7 +283,7 @@ def copy_einvoice_to_invoice_dir(user_id, invoice_id,thread_id, einvoice_filenam
     """
     bucket_name = fp.ROOT_BUCKET
     source_file = fp.EMAIL_ATTACHMENT_PATH.format(user_id=user_id, email_id=thread_id, attachment_name=einvoice_filename)
-    dest_file = fp.INVOICE_EINVOICE_PATH.format(user_id=user_id, invoice_id=invoice_id)
+    dest_file = fp.INVOICE_EINVOICE_FILE_PATH.format(user_id=user_id, invoice_id=invoice_id)
     status = copy_file(bucket_name, source_file, dest_file)
     return status
 

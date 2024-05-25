@@ -8,6 +8,8 @@ from luzidos_utils.testing.mock.boto3 import MockBoto3
 import os
 from luzidos_utils.aws_io.s3 import read
 from luzidos_utils.aws_io.s3 import write
+import runpy
+import tempfile
 
 
 def load_test_config_paths(test_configs_dir):
@@ -27,6 +29,25 @@ def create_module_test_cases(function_to_test, test_configs_dir):
     for test_config_path in sorted(test_config_paths):
         test_instances.append(ModuleTest(function_to_test, test_config_path))
     return test_instances
+
+def run_file_contents(file_contents = None, file_path = None):
+    del_file= False
+
+    if file_path is None:
+        del_file = True
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".py") as temp_file:
+            file_path = temp_file.name
+            temp_file.write(file_contents.encode('utf-8'))
+    
+    try:
+        # Use runpy to execute the temporary file in a separate namespace
+        result = runpy.run_path(file_path)
+    finally:
+        if del_file:
+            # Ensure the temporary file is deleted after execution
+            os.remove(file_path)
+    
+    return result
 
 class BaseTest(unittest.TestCase):
     def __init__(self, function_to_test, test_config_path):
@@ -59,13 +80,14 @@ class BaseTest(unittest.TestCase):
                         Util Functions
     ******************************************************************
     """
-    
+
 
     def load_test_data(self, test_config_path):
-        with open(test_config_path, 'r') as file:
-            file_contents = file.read()
-        test_configs = {}
-        exec(file_contents, {}, test_configs)
+        # with open(test_config_path, 'r') as file:
+        #     file_contents = file.read()
+        # test_configs = {}
+        # exec(file_contents, {}, test_configs)
+        test_configs = run_file_contents(file_path=test_config_path)
         test_data = test_configs.get('test_configs')
         
         self.payload = test_data["payload"]

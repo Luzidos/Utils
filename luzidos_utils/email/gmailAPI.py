@@ -222,7 +222,7 @@ class GmailClient:
 
                 attachment_data = {}
                 attachment_data["attachment_id"] = attachment_id
-                attachment_data["attachment_name"] = attachment_name
+                attachment_data["attachment_filename"] = attachment_name
                 attachment_data["attachment_type"] = attachment_type
                 # Apply OCR
                 ocr_api_url = "https://62n2j8msb4.execute-api.us-west-2.amazonaws.com/ocr_testing/ocr"

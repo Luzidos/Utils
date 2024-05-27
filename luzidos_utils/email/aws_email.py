@@ -77,8 +77,7 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
     msg = email.message_from_bytes(raw_msg['messageContent'].read(), policy=policy.default)
 
     headers = {key: value for key, value in msg.items()}
-    print(headers)
-
+    
     # Extract the 'To' and 'From' headers
     to_header = msg.get('To', ' ')
     recipient_list = to_header.split(',')
@@ -114,16 +113,16 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
 
     # Construct the new email message
     new_msg = EmailMessage()
-    new_msg['Subject'] = subject
+    new_msg['Subject'] = 'Re: ' + subject
     new_msg['From'] = to_header  # This should be your email if you are the sender
     new_msg['To'] = from_header
 
     # Set In-Reply-To and References headers for threading
-    new_msg['In-Reply-To'] = message_id
+    new_msg['In-Reply-To'] = in_reply_to
     if references:
         message_ids = references.split()
         thread_id = message_ids[0] if message_ids else None
-        new_msg['References'] = references + ' ' + message_id
+        new_msg['References'] = references # + ' ' + message_id
     else:
         new_msg['References'] = message_id
 
@@ -134,17 +133,17 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
 
     print('New References: ', new_msg['References'])
     print('New In Reply To: ', new_msg['In-Reply-To'])
-    send_message(
-        from_address=to_header,
-        to_address=from_header,
-        subject=subject,
-        body=body, 
-        attachments=attachments,
-        cc=cc, 
-        thread_id=thread_id,
-        message_id=message_id
-    )
-    return
+    # send_message(
+    #     from_address=to_header,
+    #     to_address=from_header,
+    #     subject=subject,
+    #     body=body, 
+    #     attachments=attachments,
+    #     cc=cc, 
+    #     thread_id=thread_id,
+    #     message_id=message_id
+    # )
+    # return
     new_msg.set_content(body)
 
     # Send the email using SES
@@ -154,7 +153,6 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
         RawMessage={'Data': new_msg.as_bytes()}
     )
   
-    print("Email sent! Message ID:", response)
     return
 
 
@@ -165,10 +163,10 @@ if __name__ == "__main__":
     # Example usage
     # send_message(
     #     from_address='luzidos@luzidos.com',
-    #     to_address='tiberiom@stanford.edu',
-    #     subject='Hello World from CLI',
-    #     body='This is a test email sent from Luzidos.',
-    #     # attachments=[{'filename': 'test.txt', 'content': 'SGVsbG8gd29ybGQ='}],  
+    #     to_address='acarrnza@stanford.edu',
+    #     subject='Pendejito Supremo',
+    #     body='Que genio andres caradfnasdnza.',
+    #     #attachments=[{'filename': 'test.txt', 'content': 'SGVsbG8gd29ybGQ='}],  
         
     # )
 
@@ -176,8 +174,8 @@ if __name__ == "__main__":
     # Gmail cbb54c08-4ad9-3f0f-a578-ae4bfb905c4e
     # Outlook 25102b05-7c2c-34fb-96a3-703a08a89336
 
-    #reply_to_message(thread_id="b729e81f-387b-3f05-9557-026fe1aa4afa", body='We are reply_to_messageing people. ') 
-    reply_to_message(thread_id="d0a9b311-eff9-379a-bebe-8bee27219036", body="What is this?")
+    reply_to_message(message_id="59dc7958-f1ab-35fa-8571-db46a03eb0c3", body='Andres es un pendejo.') 
+    #reply_to_message(thread_id="d0a9b311-eff9-379a-bebe-8bee27219036", body="What is this?")
     #reply_to_message(thread_id="cbb54c08-4ad9-3f0f-a578-ae4bfb905c4e", body='New email.') 
     #reply_to_message(thread_id="25102b05-7c2c-34fb-96a3-703a08a89336", body='We are testing people. ') 
 

@@ -36,7 +36,7 @@ def lambda_handler(message_id, context):
 
     
     
-    workmail = boto3.client('workmailmessageflow')
+    workmail = boto3.client('workmailmessageflow',region_name='us-west-2')
     raw_msg = workmail.get_raw_message_content(messageId=message_id)
     email_content = raw_msg['messageContent'].read()
 
@@ -48,7 +48,10 @@ def lambda_handler(message_id, context):
 
     from_address = 'luzidos@luzidos.com'
     to_address = 'acarrnza@stanford.edu'
-    subject = 'Re: ' + subject
+    if subject.startswith('Re: '):
+        subject = subject
+    else:
+        subject = 'Re: ' + subject
     body_text = "Thank you for your email. Here is our response."
 
     send_email_response(from_address, to_address, subject, body_text, in_reply_to, references, attachments)
@@ -92,4 +95,25 @@ def send_email_response(from_address, to_address, subject, body_text, in_reply_t
 
 
 if __name__ == "__main__":
-    lambda_handler(message_id="59dc7958-f1ab-35fa-8571-db46a03eb0c3", context=None)
+    lambda_handler(message_id="1e68a6d7-daea-3571-ab1d-2525c98c0c9e", context=None)
+
+# this doesn't work
+[
+    ('Subject', 'Re: This is a test email hello!'), 
+    ('From', '"luzidos@luzidos.com" <luzidos@luzidos.com>'), ('To', 'Andres Carranza <andres.carranza@stanford.edu>'), 
+    ('In-Reply-To', '<DS0PR02MB9271F6268B993FF5A48BAC8A80F02@DS0PR02MB9271.namprd02.prod.outlook.com>'), 
+    ('References', ' <DS0PR02MB9271F6268B993FF5A48BAC8A80F02@DS0PR02MB9271.namprd02.prod.outlook.com>'), 
+    ('Content-Type', 'text/plain; charset="utf-8"'), 
+    ('Content-Transfer-Encoding', '7bit'), 
+    ('MIME-Version', '1.0')]
+
+# This works
+[
+    ('Content-Type', 'multipart/mixed; boundary="===============8024294407477304433=="'), 
+    ('MIME-Version', '1.0'), 
+    ('Subject', 'Re: This is a test email hello!'), 
+    ('From', 'luzidos@luzidos.com'), 
+    ('To', 'acarrnza@stanford.edu'), 
+    ('In-Reply-To', '<DS0PR02MB9271F6268B993FF5A48BAC8A80F02@DS0PR02MB9271.namprd02.prod.outlook.com>'), 
+    ('References', '<DS0PR02MB9271F6268B993FF5A48BAC8A80F02@DS0PR02MB9271.namprd02.prod.outlook.com>')
+]

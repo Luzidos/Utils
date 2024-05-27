@@ -7,6 +7,8 @@ from email import policy
 import email
 import re
 from email.utils import parseaddr, formataddr
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 def _format_address(address):
     name, email = parseaddr(address)
@@ -102,6 +104,8 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
     references = msg['References']
     subject = msg['Subject']
     in_reply_to = msg['In-Reply-To']
+    if not in_reply_to:
+        in_reply_to = message_id
 
 
     print("To: ", to_header)
@@ -112,17 +116,15 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
     print("In Reply To: ", in_reply_to)
 
     # Construct the new email message
-    new_msg = EmailMessage()
+    new_msg = MIMEMultipart()
     new_msg['Subject'] = 'Re: ' + subject
     new_msg['From'] = to_header  # This should be your email if you are the sender
     new_msg['To'] = from_header
-
-    # Set In-Reply-To and References headers for threading
     new_msg['In-Reply-To'] = in_reply_to
     if references:
         message_ids = references.split()
         thread_id = message_ids[0] if message_ids else None
-        new_msg['References'] = references # + ' ' + message_id
+        new_msg['References'] = references + ' ' + message_id
     else:
         new_msg['References'] = message_id
 
@@ -144,13 +146,16 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
     #     message_id=message_id
     # )
     # return
-    new_msg.set_content(body)
+    # new_msg.set_content(body)
+    part = MIMEText(body, 'plain')
+    new_msg.attach(part)
+
 
     # Send the email using SES
     response = ses.send_raw_email(
         Source=to_header,  # Make sure this is a valid "from" address that you control
         Destinations=[from_header],
-        RawMessage={'Data': new_msg.as_bytes()}
+        RawMessage={'Data': new_msg.as_string()}
     )
   
     return
@@ -174,7 +179,7 @@ if __name__ == "__main__":
     # Gmail cbb54c08-4ad9-3f0f-a578-ae4bfb905c4e
     # Outlook 25102b05-7c2c-34fb-96a3-703a08a89336
 
-    reply_to_message(message_id="59dc7958-f1ab-35fa-8571-db46a03eb0c3", body='Andres es un pendejo.') 
+    reply_to_message(message_id="1e68a6d7-daea-3571-ab1d-2525c98c0c9e", body='Andres es un pendejo.') 
     #reply_to_message(thread_id="d0a9b311-eff9-379a-bebe-8bee27219036", body="What is this?")
     #reply_to_message(thread_id="cbb54c08-4ad9-3f0f-a578-ae4bfb905c4e", body='New email.') 
     #reply_to_message(thread_id="25102b05-7c2c-34fb-96a3-703a08a89336", body='We are testing people. ') 

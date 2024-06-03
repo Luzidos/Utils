@@ -200,6 +200,7 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
     message_id = msg['Message-ID']
     references = msg['References']
     subject = msg['Subject']
+    in_reply_to = msg['In-Reply-To']
 
         # Determine thread ID
     if references:
@@ -210,7 +211,6 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
         thread_id = message_id
 
     # Carranza magic touch
-    in_reply_to = msg['In-Reply-To']
     if not in_reply_to:
         in_reply_to = message_id
 
@@ -229,7 +229,7 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
     new_msg['In-Reply-To'] = in_reply_to
 
     # Custom message ID for outbound emails.
-    msg['Message-ID'] = make_msgid(domain='luzidos.com')
+    new_msg['Message-ID'] = make_msgid(domain='luzidos.com')
 
     if references:
         new_msg['References'] = references + ' ' + message_id
@@ -247,7 +247,7 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
     print('New In Reply To: ', new_msg['In-Reply-To'])
 
     # Construct body.
-    full_body = f"{body}\n\n\n\n\n\n{msg_body}"
+    full_body = f"{body}\r\n\r\n{msg_body}"
     part = MIMEText(full_body, 'plain')
     new_msg.attach(part)
 
@@ -279,11 +279,11 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
 
         email_details = {
             'sender': new_msg['From'],
-            'recipients': [['To']] + ([cc] if cc else []),
-            'subject':  msg['Subject'],
+            'recipients': [new_msg['To']] + ([cc] if cc else []),
+            'subject':  new_msg['Subject'],
             'date': str(datetime.now()),  # Example date
-            'body': body,
-            'message_id': msg['Message-ID'],
+            'body': full_body,
+            'message_id': new_msg['Message-ID'],
             'thread_id': thread_id
         }
 
@@ -297,18 +297,18 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
 
 if __name__ == "__main__":
     # Test (Get ID from CloudWatchlogs)
-    send_message(
-        from_address='luzidos@luzidos.com',
-        to_address='tiberiomalaiud@gmail.com',
-        subject='Final Testing',
-        body='What do we think about this?',
-        #attachments=[{'filename': 'test.txt', 'content': 'SGVsbG8gd29ybGQ='}],  
+    # send_message(
+    #     from_address='luzidos@luzidos.com',
+    #     to_address='tiberiomalaiud@gmail.com',
+    #     subject='Caleb Test',
+    #     body='Will it work?',
+    #     #attachments=[{'filename': 'test.txt', 'content': 'SGVsbG8gd29ybGQ='}],  
         
-    )
+    # )
 
     # Outlook 658cfeaf-c157-3f57-9e7d-44bc12446f1c
     # Gmail cbb54c08-4ad9-3f0f-a578-ae4bfb905c4e
     # Outlook 25102b05-7c2c-34fb-96a3-703a08a89336
 
-    #reply_to_message(message_id="e7387820-723c-37a0-bc57-33d7f5e1b6a3", body='This should be the only visible text, the rest is from past email messages.') 
+    reply_to_message(message_id="15478ae3-1628-3657-8f97-d62615556204", body='I call cap Daniel.') 
     

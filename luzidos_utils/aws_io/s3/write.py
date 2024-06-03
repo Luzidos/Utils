@@ -88,7 +88,7 @@ def upload_email_body_to_s3(user_id, thread_id, email_body):
     :param email_body: Email body
     """
     bucket_name = fp.ROOT_BUCKET
-    object_name = fp.EMAIL_BODY_JSON_PATH.format(user_id=user_id, email_id=thread_id)
+    object_name = fp.EMAIL_JSON_PATH.format(user_id=user_id, email_id=thread_id)
     status = upload_dict_as_json_to_s3(bucket_name, email_body, object_name)
     return status
 

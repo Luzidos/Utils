@@ -98,8 +98,7 @@ def _update_email_s3(email_details):
 
     return s3_write.upload_email_body_to_s3(userSub, thread_id, email_json)
 
-def _handle_attachments(attachments, msg):
-    from_address = msg['From']
+def _handle_attachments(attachments, thread_id, from_address):
     # Attachments
     attachment_ids = []
     for file_path in attachments:
@@ -113,7 +112,7 @@ def _handle_attachments(attachments, msg):
         if userSub is None:
             print('Error: User Sub is NONE.')
             return False
-        attachment_s3_key = f"public/{userSub}/emails/email_{msg['References']}/attachments/{attachment_id}{file_extension}"
+        attachment_s3_key = f"public/{userSub}/emails/email_{thread_id}/attachments/{attachment_id}{file_extension}"
         print(bucket_name, object_name, attachment_s3_key)
         if not s3_write.copy_file(bucket_name, {'Bucket': bucket_name, 'Key': object_name}, attachment_s3_key):
             print('File copy error')
@@ -164,36 +163,8 @@ def send_message(from_address, to_address, subject, body, attachments=None, cc=N
     # Attachments
     attachment_ids = []
     if attachments:
-        msg = _handle_attachments(attachments, msg)
-        for file_path in attachments:
-            bucket_name = file_path.split('/')[0]
-            object_name = '/'.join(file_path.split('/')[1:])
-            _, file_extension = os.path.splitext(object_name)
-
-            # Copy file to S3.
-            attachment_id = str(uuid.uuid4())  # Generate a unique ID for each attachment
-            userSub = db_read.get_user_from_db(from_address)
-            if userSub is None:
-                print('Error: User Sub is NONE.')
-                return False
-            attachment_s3_key = f"public/{userSub}/emails/email_{msg['References']}/attachments/{attachment_id}{file_extension}"
-            print(bucket_name, object_name, attachment_s3_key)
-            if not s3_write.copy_file(bucket_name, {'Bucket': bucket_name, 'Key': object_name}, attachment_s3_key):
-                print('File copy error')
-                return 
-
-            attachment_ids.append(f"{attachment_id}{file_extension}")
-            file_data = s3_read.read_file_from_s3(bucket_name, object_name)
-            
-            part = MIMEBase('application', "octet-stream")
-            part.set_payload(file_data)
-            encoders.encode_base64(part)
-            
-            file_name = file_path.split('/')[-1]
-            part.add_header('Content-Disposition', f'attachment; filename="{file_name}"')
-            
-            msg.attach(part)
-
+        msg, attachment_ids = _handle_attachments(attachments, msg, msg['From'])
+     
     # Send the email
     try:
         response = ses.send_raw_email(
@@ -318,37 +289,7 @@ def _reply_to_message(workmail_message_id, body, attachments=None, reply_all=Fal
     # Attachments
     attachment_ids = []
     if attachments:
-        for file_path in attachments:
-            bucket_name = file_path.split('/')[0]
-            object_name = '/'.join(file_path.split('/')[1:])
-            _, file_extension = os.path.splitext(object_name)
-
-            # Copy file to S3.
-            attachment_id = str(uuid.uuid4())  # Generate a unique ID for each attachment
-            
-            name, from_address  = parseaddr(new_msg['From'])
-            userSub = db_read.get_user_from_db(from_address)
-            if userSub is None:
-                print('Error: User Sub is NONE.')
-                return False
-            attachment_s3_key = f"public/{userSub}/emails/email_{msg['References']}/attachments/{attachment_id}{file_extension}"
-            print(bucket_name, object_name, attachment_s3_key)
-            if not s3_write.copy_file(bucket_name, {'Bucket': bucket_name, 'Key': object_name}, attachment_s3_key):
-                print('File copy error')
-                return 
-
-            attachment_ids.append(f"{attachment_id}{file_extension}")
-            file_data = s3_read.read_file_from_s3(bucket_name, object_name)
-            
-            part = MIMEBase('application', "octet-stream")
-            part.set_payload(file_data)
-            encoders.encode_base64(part)
-            
-            file_name = file_path.split('/')[-1]
-            part.add_header('Content-Disposition', f'attachment; filename="{file_name}"')
-            
-            msg.attach(part)
-
+        msg, attachment_ids = _handle_attachments(attachments, msg)
 
     try:
         # Send the email using SES
@@ -402,13 +343,13 @@ def reply_to_thread(thread_id, email_data, body, attachments=None, reply_all=Fal
 
     # Reply to all CC.
     if reply_all:
-        new_msg['Cc'] = email_data['cc']
+        new_msg['Cc'] = latest_email['cc']
 
     print('New References: ', new_msg['References'])
     print('New In Reply To: ', new_msg['In-Reply-To'])
 
     # Construct body.
-    full_body = f"{body}\r\n\r\n{email_data['body']}"
+    full_body = f"{body}\r\n\r\n{latest_email['body']}"
     part = MIMEText(full_body, 'plain')
     new_msg.attach(part)
 

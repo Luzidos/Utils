@@ -98,8 +98,14 @@ def _update_email_s3(email_details):
 
     return s3_write.upload_email_body_to_s3(userSub, thread_id, email_json)
 
-def _handle_attachments(attachments, thread_id, from_address):
-    # Attachments
+def _handle_attachments(attachments, msg, from_address):
+    references = msg.get('References', '')
+    if references:
+        thread_id = references.split()[0]
+    else:
+        print('No references found in email object. Attachments function.')
+        return 
+    
     attachment_ids = []
     for file_path in attachments:
         bucket_name = file_path.split('/')[0]
@@ -289,7 +295,7 @@ def _reply_to_message(workmail_message_id, body, attachments=None, reply_all=Fal
     # Attachments
     attachment_ids = []
     if attachments:
-        msg, attachment_ids = _handle_attachments(attachments, msg)
+        new_msg, attachment_ids = _handle_attachments(attachments, new_msg, new_msg['From'])
 
     try:
         # Send the email using SES
@@ -356,36 +362,7 @@ def reply_to_thread(thread_id, email_data, body, attachments=None, reply_all=Fal
     # Attachments
     attachment_ids = []
     if attachments:
-        for file_path in attachments:
-            bucket_name = file_path.split('/')[0]
-            object_name = '/'.join(file_path.split('/')[1:])
-            _, file_extension = os.path.splitext(object_name)
-
-            # Copy file to S3.
-            attachment_id = str(uuid.uuid4())  # Generate a unique ID for each attachment
-            
-            name, from_address  = parseaddr(new_msg['From'])
-            userSub = db_read.get_user_from_db(from_address)
-            if userSub is None:
-                print('Error: User Sub is NONE.')
-                return False
-            attachment_s3_key = f"public/{userSub}/emails/email_{new_msg['References']}/attachments/{attachment_id}{file_extension}"
-            print(bucket_name, object_name, attachment_s3_key)
-            if not s3_write.copy_file(bucket_name, {'Bucket': bucket_name, 'Key': object_name}, attachment_s3_key):
-                print('File copy error')
-                return 
-
-            attachment_ids.append(f"{attachment_id}{file_extension}")
-            file_data = s3_read.read_file_from_s3(bucket_name, object_name)
-            
-            part = MIMEBase('application', "octet-stream")
-            part.set_payload(file_data)
-            encoders.encode_base64(part)
-            
-            file_name = file_path.split('/')[-1]
-            part.add_header('Content-Disposition', f'attachment; filename="{file_name}"')
-            
-            new_msg.attach(part)
+        new_msg, attachment_ids = _handle_attachments(attachments, new_msg, new_msg['From'])
 
 
     try:

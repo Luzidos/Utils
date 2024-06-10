@@ -99,6 +99,7 @@ def _update_email_s3(email_details):
     return s3_write.upload_email_body_to_s3(userSub, thread_id, email_json)
 
 def _handle_attachments(attachments, msg, from_address):
+    name, from_address = parseaddr(from_address)
     references = msg.get('References', '')
     if references:
         thread_id = references.split()[0]
@@ -403,7 +404,7 @@ if __name__ == "__main__":
         to_address='tiberiomalaiud@gmail.com',
         subject='Attachment Test',
         body='Will it work?',
-        attachments=["luzidosdatadump/public/927aa041-e5ba-4acf-ab0e-19a1c629bee9/emails/email_<CAOamM342zt2P+n9SCfUUoe--RFDtkNkD5uwaHmysDY0NC4F8zg@mail.gmail.com>/email.json"],  
+        #attachments=["luzidosdatadump/public/927aa041-e5ba-4acf-ab0e-19a1c629bee9/emails/email_<CAOamM342zt2P+n9SCfUUoe--RFDtkNkD5uwaHmysDY0NC4F8zg@mail.gmail.com>/email.json"],  
         
     )
 

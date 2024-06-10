@@ -3,7 +3,6 @@ from luzidos_utils.aws_io.s3 import write as s3_write
 from luzidos_utils.aws_io.db import read as db_read
 import boto3
 from email.message import EmailMessage
-import base64
 from email.parser import BytesParser
 from email import policy
 import email
@@ -13,6 +12,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from datetime import datetime
+import uuid
+import os
 
 def _format_address(address):
     name, email = parseaddr(address)
@@ -45,6 +46,7 @@ def _update_email_s3(email_details):
     body = email_details['body']
     thread_id = email_details['thread_id']
     message_id = email_details['message_id']
+    attachments_ids = email_details['attachment_ids']
 
     userSub = db_read.get_user_from_db(sender)
     if userSub is None:
@@ -53,6 +55,7 @@ def _update_email_s3(email_details):
     
 
     s3_email_json = s3_read.read_email_body_from_s3(userSub, thread_id)
+    print('S3 email Json:', s3_email_json)
 
     if s3_email_json is not None:
         if s3_email_json['thread_id'] != thread_id:
@@ -67,6 +70,7 @@ def _update_email_s3(email_details):
                 'From': sender,
                 'To': recipients,
                 'body': body,
+                'attachment_ids': attachments_ids
             }
         }
 
@@ -84,6 +88,7 @@ def _update_email_s3(email_details):
                     'From': sender,
                     'To': recipients,
                     'body': body,
+                    'attachment_ids': attachments_ids,
                 }
             }
         }
@@ -119,10 +124,26 @@ def send_message(from_address, to_address, subject, body, attachments=None, cc=N
         msg['Cc'] = _format_address(cc) # Only one CC, could case problems TODO.
 
     # Attachments
+    attachment_ids = []
     if attachments:
         for file_path in attachments:
             bucket_name = file_path.split('/')[0]
             object_name = '/'.join(file_path.split('/')[1:])
+            _, file_extension = os.path.splitext(object_name)
+
+            # Copy file to S3.
+            attachment_id = str(uuid.uuid4())  # Generate a unique ID for each attachment
+            userSub = db_read.get_user_from_db(from_address)
+            if userSub is None:
+                print('Error: User Sub is NONE.')
+                return False
+            attachment_s3_key = f"public/{userSub}/emails/email_{msg['References']}/attachments/{attachment_id}{file_extension}"
+            print(bucket_name, object_name, attachment_s3_key)
+            if not s3_write.copy_file(bucket_name, {'Bucket': bucket_name, 'Key': object_name}, attachment_s3_key):
+                print('File copy error')
+                return 
+
+            attachment_ids.append(f"{attachment_id}{file_extension}")
             file_data = s3_read.read_file_from_s3(bucket_name, object_name)
             
             part = MIMEBase('application', "octet-stream")
@@ -150,22 +171,25 @@ def send_message(from_address, to_address, subject, body, attachments=None, cc=N
             'date': str(datetime.now()),  # Example date
             'body': body,
             'message_id': msg['References'],
-            'thread_id': msg['References']
+            'thread_id': msg['References'],
+            'attachment_ids': attachment_ids
         }
         if not _update_email_s3(email_details):
             print("ERROR: Failure to upload email json to S3.")
         
+        return msg['References']
     except Exception as e:
         print("Failed to send email:", e)
 
     return
 
-def reply_to_message(message_id, body, attachments=None, reply_all=False):
+
+def reply_to_message(workmail_message_id, body, attachments=None, reply_all=False):
     workmail = boto3.client('workmailmessageflow', region_name='us-west-2')
     ses = boto3.client('ses', region_name='us-west-2')
 
     # Fetch the original email content from WorkMail using the thread_id (message ID)
-    raw_msg = workmail.get_raw_message_content(messageId=message_id)
+    raw_msg = workmail.get_raw_message_content(messageId=workmail_message_id)
 
     # Parse the original email to extract necessary details
     msg = email.message_from_bytes(raw_msg['messageContent'].read(), policy=policy.default)
@@ -251,11 +275,29 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
     part = MIMEText(full_body, 'plain')
     new_msg.attach(part)
 
-    # Add attachments
+    # Attachments
+    attachment_ids = []
     if attachments:
         for file_path in attachments:
             bucket_name = file_path.split('/')[0]
             object_name = '/'.join(file_path.split('/')[1:])
+            _, file_extension = os.path.splitext(object_name)
+
+            # Copy file to S3.
+            attachment_id = str(uuid.uuid4())  # Generate a unique ID for each attachment
+            
+            name, from_address  = parseaddr(new_msg['From'])
+            userSub = db_read.get_user_from_db(from_address)
+            if userSub is None:
+                print('Error: User Sub is NONE.')
+                return False
+            attachment_s3_key = f"public/{userSub}/emails/email_{msg['References']}/attachments/{attachment_id}{file_extension}"
+            print(bucket_name, object_name, attachment_s3_key)
+            if not s3_write.copy_file(bucket_name, {'Bucket': bucket_name, 'Key': object_name}, attachment_s3_key):
+                print('File copy error')
+                return 
+
+            attachment_ids.append(f"{attachment_id}{file_extension}")
             file_data = s3_read.read_file_from_s3(bucket_name, object_name)
             
             part = MIMEBase('application', "octet-stream")
@@ -265,7 +307,7 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
             file_name = file_path.split('/')[-1]
             part.add_header('Content-Disposition', f'attachment; filename="{file_name}"')
             
-            new_msg.attach(part)
+            msg.attach(part)
 
 
     try:
@@ -284,11 +326,13 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
             'date': str(datetime.now()),  # Example date
             'body': full_body,
             'message_id': new_msg['Message-ID'],
-            'thread_id': thread_id
+            'thread_id': thread_id,
+            'attachment_ids': attachment_ids
         }
 
         if not _update_email_s3(email_details):
             print("ERROR: Failure to upload email json to S3.")
+        return thread_id
     except Exception as e:
         print("Failed to send email:", e)
         
@@ -297,18 +341,19 @@ def reply_to_message(message_id, body, attachments=None, reply_all=False):
 
 if __name__ == "__main__":
     # Test (Get ID from CloudWatchlogs)
-    # send_message(
-    #     from_address='luzidos@luzidos.com',
-    #     to_address='tiberiomalaiud@gmail.com',
-    #     subject='Caleb Test',
-    #     body='Will it work?',
-    #     #attachments=[{'filename': 'test.txt', 'content': 'SGVsbG8gd29ybGQ='}],  
+    send_message(
+        from_address='luzidos@luzidos.com',
+        to_address='tiberiomalaiud@gmail.com',
+        subject='Attachment Test',
+        body='Will it work?',
+        attachments=["luzidosdatadump/public/927aa041-e5ba-4acf-ab0e-19a1c629bee9/emails/email_<CAOamM342zt2P+n9SCfUUoe--RFDtkNkD5uwaHmysDY0NC4F8zg@mail.gmail.com>/email.json"],  
         
-    # )
+    )
 
     # Outlook 658cfeaf-c157-3f57-9e7d-44bc12446f1c
     # Gmail cbb54c08-4ad9-3f0f-a578-ae4bfb905c4e
     # Outlook 25102b05-7c2c-34fb-96a3-703a08a89336
 
-    reply_to_message(message_id="15478ae3-1628-3657-8f97-d62615556204", body='I call cap Daniel.') 
+    # reply_to_message(message_id="15478ae3-1628-3657-8f97-d62615556204", body='I call cap Daniel.') 
+    print("Uncomment to test.")
     

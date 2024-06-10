@@ -261,7 +261,7 @@ def copy_file(bucket_name, source_file, dest_file):
     Copy a file from one location to another in an S3 bucket
 
     :param bucket_name: Name of the S3 bucket
-    :param source_file: Source file
+    :param source_file: Source file = {'Bucket': bucket_name, 'Key': object_name}
     :param dest_file: Destination file
     :return: True if file was copied, else False
     """

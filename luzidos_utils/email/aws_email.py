@@ -97,6 +97,41 @@ def _update_email_s3(email_details):
         }
 
     return s3_write.upload_email_body_to_s3(userSub, thread_id, email_json)
+
+def _handle_attachments(attachments, msg):
+    from_address = msg['From']
+    # Attachments
+    attachment_ids = []
+    for file_path in attachments:
+        bucket_name = file_path.split('/')[0]
+        object_name = '/'.join(file_path.split('/')[1:])
+        _, file_extension = os.path.splitext(object_name)
+
+        # Copy file to S3.
+        attachment_id = str(uuid.uuid4())  # Generate a unique ID for each attachment
+        userSub = db_read.get_user_from_db(from_address)
+        if userSub is None:
+            print('Error: User Sub is NONE.')
+            return False
+        attachment_s3_key = f"public/{userSub}/emails/email_{msg['References']}/attachments/{attachment_id}{file_extension}"
+        print(bucket_name, object_name, attachment_s3_key)
+        if not s3_write.copy_file(bucket_name, {'Bucket': bucket_name, 'Key': object_name}, attachment_s3_key):
+            print('File copy error')
+            return 
+
+        attachment_ids.append(f"{attachment_id}{file_extension}")
+        file_data = s3_read.read_file_from_s3(bucket_name, object_name)
+        
+        part = MIMEBase('application', "octet-stream")
+        part.set_payload(file_data)
+        encoders.encode_base64(part)
+        
+        file_name = file_path.split('/')[-1]
+        part.add_header('Content-Disposition', f'attachment; filename="{file_name}"')
+        
+        msg.attach(part)
+
+    return msg, attachment_ids
     
 
 def send_message(from_address, to_address, subject, body, attachments=None, cc=None, thread_id=None, message_id=None):
@@ -129,6 +164,7 @@ def send_message(from_address, to_address, subject, body, attachments=None, cc=N
     # Attachments
     attachment_ids = []
     if attachments:
+        msg = _handle_attachments(attachments, msg)
         for file_path in attachments:
             bucket_name = file_path.split('/')[0]
             object_name = '/'.join(file_path.split('/')[1:])
@@ -347,6 +383,8 @@ def _reply_to_message(workmail_message_id, body, attachments=None, reply_all=Fal
 def reply_to_thread(thread_id, email_data, body, attachments=None, reply_all=False):
     ses = boto3.client('ses', region_name='us-west-2')
     latest_email = list(email_data["messages"].values())[-1]
+    latest_email_message_id = list(email_data["messages"].keys())[-1]
+
     if latest_email['workmail_id'] is not None:
         return _reply_to_message(latest_email['workmail_id'], body, attachments, reply_all)
 
@@ -355,12 +393,12 @@ def reply_to_thread(thread_id, email_data, body, attachments=None, reply_all=Fal
     new_msg['Subject'] = latest_email['Subject']
     new_msg['From'] = latest_email['From']  # This should be your email if you are the sender
     new_msg['To'] = latest_email['To']
-    new_msg['In-Reply-To'] = latest_email
+    new_msg['In-Reply-To'] = latest_email_message_id
 
     # Custom message ID for outbound emails.
     new_msg['Message-ID'] = make_msgid(domain='luzidos.com')
 
-    new_msg['References'] = latest_email + ' ' + new_msg['Message-ID']
+    new_msg['References'] = latest_email_message_id + ' ' + new_msg['Message-ID']
 
     # Reply to all CC.
     if reply_all:

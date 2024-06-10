@@ -39,14 +39,15 @@ def _get_email_body(msg):
         return msg.get_payload(decode=True).decode()
 
 def _update_email_s3(email_details):
-    name, sender = parseaddr(email_details['sender'])
-    recipients = email_details['recipients']
+    name, sender = parseaddr(email_details['from'])
+    recipients = email_details['to']
     subject = email_details['subject']
     date = email_details['date']
     body = email_details['body']
     thread_id = email_details['thread_id']
     message_id = email_details['message_id']
     attachments_ids = email_details['attachment_ids']
+    cc = email_details['cc']
 
     userSub = db_read.get_user_from_db(sender)
     if userSub is None:
@@ -69,6 +70,7 @@ def _update_email_s3(email_details):
                 'Subject': subject,
                 'From': sender,
                 'To': recipients,
+                'cc': cc,
                 'body': body,
                 'attachment_ids': attachments_ids
             }
@@ -87,6 +89,7 @@ def _update_email_s3(email_details):
                     'Subject': subject,
                     'From': sender,
                     'To': recipients,
+                    'cc': cc,
                     'body': body,
                     'attachment_ids': attachments_ids,
                 }
@@ -165,8 +168,9 @@ def send_message(from_address, to_address, subject, body, attachments=None, cc=N
         print("Email sent! Message ID:", response['MessageId'])
 
         email_details = {
-            'sender':  msg['From'],
-            'recipients': [msg['To']] + ([cc] if cc else []),
+            'from':  msg['From'],
+            'to': [msg['To']] + ([cc] if cc else []),
+            'cc': msg.get('Cc', None),
             'subject':  msg['Subject'],
             'date': str(datetime.now()),  # Example date
             'body': body,
@@ -184,7 +188,7 @@ def send_message(from_address, to_address, subject, body, attachments=None, cc=N
     return
 
 
-def reply_to_message(workmail_message_id, body, attachments=None, reply_all=False):
+def _reply_to_message(workmail_message_id, body, attachments=None, reply_all=False):
     workmail = boto3.client('workmailmessageflow', region_name='us-west-2')
     ses = boto3.client('ses', region_name='us-west-2')
 
@@ -320,8 +324,9 @@ def reply_to_message(workmail_message_id, body, attachments=None, reply_all=Fals
         print("Email sent! Message ID:", response['MessageId'])
 
         email_details = {
-            'sender': new_msg['From'],
-            'recipients': [new_msg['To']] + ([cc] if cc else []),
+            'from': new_msg['From'],
+            'to': [new_msg['To']] + ([cc] if cc else []),
+            'cc': new_msg.get('Cc', None),
             'subject':  new_msg['Subject'],
             'date': str(datetime.now()),  # Example date
             'body': full_body,
@@ -337,6 +342,102 @@ def reply_to_message(workmail_message_id, body, attachments=None, reply_all=Fals
         print("Failed to send email:", e)
         
     return
+
+
+def reply_to_thread(thread_id, email_data, body, attachments=None, reply_all=False):
+    ses = boto3.client('ses', region_name='us-west-2')
+    latest_email = list(email_data["messages"].values())[-1]
+    if latest_email['workmail_id'] is not None:
+        return _reply_to_message(latest_email['workmail_id'], body, attachments, reply_all)
+
+    # Construct the new email message
+    new_msg = MIMEMultipart()
+    new_msg['Subject'] = latest_email['Subject']
+    new_msg['From'] = latest_email['From']  # This should be your email if you are the sender
+    new_msg['To'] = latest_email['To']
+    new_msg['In-Reply-To'] = latest_email
+
+    # Custom message ID for outbound emails.
+    new_msg['Message-ID'] = make_msgid(domain='luzidos.com')
+
+    new_msg['References'] = latest_email + ' ' + new_msg['Message-ID']
+
+    # Reply to all CC.
+    if reply_all:
+        new_msg['Cc'] = email_data['cc']
+
+    print('New References: ', new_msg['References'])
+    print('New In Reply To: ', new_msg['In-Reply-To'])
+
+    # Construct body.
+    full_body = f"{body}\r\n\r\n{email_data['body']}"
+    part = MIMEText(full_body, 'plain')
+    new_msg.attach(part)
+
+    # Attachments
+    attachment_ids = []
+    if attachments:
+        for file_path in attachments:
+            bucket_name = file_path.split('/')[0]
+            object_name = '/'.join(file_path.split('/')[1:])
+            _, file_extension = os.path.splitext(object_name)
+
+            # Copy file to S3.
+            attachment_id = str(uuid.uuid4())  # Generate a unique ID for each attachment
+            
+            name, from_address  = parseaddr(new_msg['From'])
+            userSub = db_read.get_user_from_db(from_address)
+            if userSub is None:
+                print('Error: User Sub is NONE.')
+                return False
+            attachment_s3_key = f"public/{userSub}/emails/email_{new_msg['References']}/attachments/{attachment_id}{file_extension}"
+            print(bucket_name, object_name, attachment_s3_key)
+            if not s3_write.copy_file(bucket_name, {'Bucket': bucket_name, 'Key': object_name}, attachment_s3_key):
+                print('File copy error')
+                return 
+
+            attachment_ids.append(f"{attachment_id}{file_extension}")
+            file_data = s3_read.read_file_from_s3(bucket_name, object_name)
+            
+            part = MIMEBase('application', "octet-stream")
+            part.set_payload(file_data)
+            encoders.encode_base64(part)
+            
+            file_name = file_path.split('/')[-1]
+            part.add_header('Content-Disposition', f'attachment; filename="{file_name}"')
+            
+            new_msg.attach(part)
+
+
+    try:
+        # Send the email using SES
+        response = ses.send_raw_email(
+            Source=new_msg['From'],  # Make sure this is a valid "from" address that you control
+            Destinations=[new_msg['To']],
+            RawMessage={'Data': new_msg.as_string()}
+        )
+        print("Email sent! Message ID:", response['MessageId'])
+
+        email_details = {
+            'from': new_msg['From'],
+            'to': [new_msg['To']],
+            'cc': new_msg.get('Cc', None),
+            'subject':  new_msg['Subject'],
+            'date': str(datetime.now()),  # Example date
+            'body': full_body,
+            'message_id': new_msg['Message-ID'],
+            'thread_id': thread_id,
+            'attachment_ids': attachment_ids
+        }
+
+        if not _update_email_s3(email_details):
+            print("ERROR: Failure to upload email json to S3.")
+        return thread_id
+    except Exception as e:
+        print("Failed to send email:", e)
+        
+    return
+
 
 
 if __name__ == "__main__":

@@ -27,7 +27,7 @@ USER_CEDULA_PATH = "public/{user_id}/user/cedula.pdf"
 USER_RUT_PATH = "public/{user_id}/user/rut.pdf"
 
 def USER_ID_DOCUMENT_PATH(id_document_type):
-    if id_document_type.lower() == "cédula":
+    if id_document_type.lower() == "cedula":
         return f"{ROOT_BUCKET}/{USER_CEDULA_PATH}"
     elif id_document_type.lower() == "rut":
         return f"{ROOT_BUCKET}/{USER_RUT_PATH}"

@@ -157,6 +157,8 @@ class ModuleTest(BaseTest):
         self.assert_user_data()
         self.assert_email_s3_data()
         self.assert_s3_data()
+        self.assert_eventbridge_data()
+        self.assert_workmail_data()
         self.assert_boto3_data()
 
 
@@ -193,9 +195,29 @@ class ModuleTest(BaseTest):
 
     def assert_email_s3_data(self):
         msg = f"Email data does not match expected data after running {self.module_name}"
-        mock_email_data = self.mock_s3.mock_s3_data["public"][self.user_id]["emails"]
-        expected_email_data = self.expected_mock_s3.mock_s3_data["public"][self.user_id]["emails"]
+        mock_email_data = self.mock_s3.mock_s3_data["luzidosdatadump"]["public"][self.user_id]["emails"]
+        expected_email_data = self.expected_mock_s3.mock_s3_data["luzidosdatadump"]["public"][self.user_id]["emails"]
         self.assertDictEqual(mock_email_data, expected_email_data, msg=msg)
+
+    def assert_eventbridge_data(self):
+        msg = f"Eventbridge data does not match expected data after running {self.module_name}"
+        mock_eventbridge_data = None
+        expected_eventbridge_data = None
+        if "eventbridge_data" in self.mock_boto3.mock_data:
+            mock_eventbridge_data = self.mock_boto3.mock_data["eventbridge_data"]
+        if "eventbridge_data" in self.expected_boto3.mock_data:
+            expected_eventbridge_data = self.expected_boto3.mock_data["eventbridge_data"]
+        self.assertDictEqual(mock_eventbridge_data, expected_eventbridge_data, msg=msg)
+    
+    def assert_workmail_data(self):
+        msg = f"Workmail data does not match expected data after running {self.module_name}"
+        mock_workmail_data = None
+        expected_workmail_data = None
+        if "workmail_data" in self.mock_boto3.mock_data:
+            mock_workmail_data = self.mock_boto3.mock_data["workmail_data"]
+        if "workmail_data" in self.expected_boto3.mock_data:
+            expected_workmail_data = self.expected_boto3.mock_data["workmail_data"]
+        self.assertDictEqual(mock_workmail_data, expected_workmail_data, msg=msg)
 
     def assert_boto3_data(self):
         msg = f"Boto3 data does not match expected data after running {self.module_name}"

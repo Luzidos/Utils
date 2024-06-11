@@ -32,4 +32,4 @@ def USER_ID_DOCUMENT_PATH(id_document_type):
     elif id_document_type.lower() == "rut":
         return f"{ROOT_BUCKET}/{USER_RUT_PATH}"
     else:
-        return None
+        raise ValueError(f"Invalid id_document_type: {id_document_type}")

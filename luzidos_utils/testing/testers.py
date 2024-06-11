@@ -145,6 +145,7 @@ class ModuleTest(BaseTest):
         self.expected_mock_s3 = MockS3(self.expected_data["expected_s3_data"])
 
         self.mock_boto3 = MockBoto3(self.mock_data["mock_boto3_data"])
+        self.expected_boto3 = MockBoto3(self.expected_data["expected_boto3_data"])
 
         with self.patch_s3_read(self.mock_s3), \
             self.patch_s3_write(self.mock_s3), \
@@ -154,7 +155,9 @@ class ModuleTest(BaseTest):
         self.assert_state_data()
         self.assert_transaction_data()
         self.assert_user_data()
+        self.assert_email_s3_data()
         self.assert_s3_data()
+        self.assert_boto3_data()
 
 
     """
@@ -187,6 +190,16 @@ class ModuleTest(BaseTest):
         msg = f"Luzidosdatadump data does not match expected data after running {self.module_name}"
 
         self.assertDictEqual(self.mock_s3.mock_s3_data, self.expected_mock_s3.mock_s3_data, msg=msg)
+
+    def assert_email_s3_data(self):
+        msg = f"Email data does not match expected data after running {self.module_name}"
+        mock_email_data = self.mock_s3.mock_s3_data["public"][self.user_id]["emails"]
+        expected_email_data = self.expected_mock_s3.mock_s3_data["public"][self.user_id]["emails"]
+        self.assertDictEqual(mock_email_data, expected_email_data, msg=msg)
+
+    def assert_boto3_data(self):
+        msg = f"Boto3 data does not match expected data after running {self.module_name}"
+        self.assertDictEqual(self.mock_boto3.mock_data, self.expected_boto3.mock_data, msg=msg)
 
     def __str__(self):
         test_name = self.test_config_path.split("configs/")[1]

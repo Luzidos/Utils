@@ -172,7 +172,7 @@ class MockS3:
         Mock function for copy_file
         
         """
-        if f"{bucket_name}/{source_file}" in self.override_paths:
+        if f"{bucket_name}/{source_file}" in self.override_paths and f"{bucket_name}/{dest_file}" in self.override_paths:
             return s3_write.copy_file(bucket_name, source_file, dest_file)
         data = self.mock_s3_data[bucket_name]
         for key in source_file.split("/"):

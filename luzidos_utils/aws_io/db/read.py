@@ -3,7 +3,7 @@ from botocore.exceptions import ClientError
 
 def get_user_from_db(email):
     # Initialize a session using Amazon DynamoDB
-    dynamodb = boto3.resource('dynamodb')
+    dynamodb = boto3.resource('dynamodb', region_name='us-west-2')
 
     # Select your table
     table = dynamodb.Table('emailToUserId')

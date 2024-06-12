@@ -125,6 +125,11 @@ class BaseTest(unittest.TestCase):
            new=mock_boto3.mock_client 
         )
 
+    def patch_boto3_resource(self, mock_boto3):
+        return patch(
+            'boto3.resource', 
+           new=mock_boto3.mock_resource 
+        )
 
 
 class ModuleTest(BaseTest):

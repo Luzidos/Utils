@@ -2,6 +2,7 @@ import boto3
 from luzidos_utils.testing.mock.eventbridge import MockEventBridge
 from luzidos_utils.testing.mock.ses import MockSES
 from luzidos_utils.testing.mock.workmailmessageflow import MockWorkMailMessageFlow
+from luzidos_utils.testing.mock.dynamodb import MockDynamoDB
 
 class MockBoto3:
     def __init__(self, mock_data=None):
@@ -15,5 +16,10 @@ class MockBoto3:
         elif service_name == 'workmailmessageflow' and 'workmail_data' in self.mock_data:
             return MockWorkMailMessageFlow(self.mock_data['workmail_data'])
         return boto3.client(service_name, **kwargs)
+
+    def mock_resource(self, service_name, **kwargs):
+        if service_name == "dynamodb" and 'dynamodb_data' in self.mock_data:
+            return MockDynamoDB(self.mock_data['dynamodb_data'])
+        return boto3.resource(service_name, **kwargs)
 
     

@@ -2,6 +2,7 @@ import os
 import json
 import boto3
 import luzidos_utils.aws_io.s3 as s3_read
+import luzidos_utils.aws_io.s3.write as s3_write
 
 
 class MockS3:
@@ -122,7 +123,7 @@ class MockS3:
         We set file_path as the value of the last key in the nested dictionaries.
         """
         if f"{bucket_name}/{object_name}" in self.override_paths:
-            return s3_read.upload_file_to_s3(file_path, bucket_name, object_name)
+            return s3_write.upload_file_to_s3(file_path, bucket_name, object_name)
         
         current_level = self.mock_s3_data.setdefault(bucket_name, {})
         path_parts = object_name.strip('/').split('/')
@@ -139,7 +140,7 @@ class MockS3:
         Mock function for upload_file_obj_to_s3
         """
         if f"{bucket_name}/{object_name}" in self.override_paths:
-            return s3_read.upload_file_obj_to_s3(file_obj, bucket_name, object_name)
+            return s3_write.upload_file_obj_to_s3(file_obj, bucket_name, object_name)
         
         current_level = self.mock_s3_data.setdefault(bucket_name, {})
         path_parts = object_name.strip('/').split('/')
@@ -156,7 +157,7 @@ class MockS3:
         Mock function for upload_dict_as_json_to_s3
         """
         if f"{bucket_name}/{object_name}" in self.override_paths:
-            return s3_read.upload_dict_as_json_to_s3(bucket_name, dict_data, object_name)
+            return s3_write.upload_dict_as_json_to_s3(bucket_name, dict_data, object_name)
         current_level = self.mock_s3_data.setdefault(bucket_name, {})
         path_parts = object_name.strip('/').split('/')
 
@@ -172,7 +173,7 @@ class MockS3:
         
         """
         if f"{bucket_name}/{source_file}" in self.override_paths:
-            return s3_read.copy_file(bucket_name, source_file, dest_file)
+            return s3_write.copy_file(bucket_name, source_file, dest_file)
         data = self.mock_s3_data[bucket_name]
         for key in source_file.split("/"):
             data = data[key]

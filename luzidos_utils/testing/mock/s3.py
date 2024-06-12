@@ -1,7 +1,7 @@
 import os
 import json
 import boto3
-from luzidos_utils.aws_io.s3 import s3_read
+import luzidos_utils.aws_io.s3 as s3_read
 
 
 class MockS3:

@@ -7,7 +7,11 @@ class MockTable:
         key_name, key_value = next(iter(Key.items()))
         item = self.data_store.get(key_value)
         if item:
-            return {'Item': item}
+            return {
+                'Item': {
+                    "value": item
+                }
+            }
         else:
             return {'Error': f"No item found with {key_name}: {key_value}"}
 

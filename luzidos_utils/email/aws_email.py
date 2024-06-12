@@ -121,7 +121,7 @@ def _handle_attachments(attachments, msg, from_address):
             return False
         attachment_s3_key = f"public/{userSub}/emails/email_{thread_id}/attachments/{attachment_id}{file_extension}"
         print(bucket_name, object_name, attachment_s3_key)
-        if not s3_write.copy_file(bucket_name, {'Bucket': bucket_name, 'Key': object_name}, attachment_s3_key):
+        if not s3_write.copy_file(bucket_name, object_name, attachment_s3_key):
             print('File copy error')
             return 
 

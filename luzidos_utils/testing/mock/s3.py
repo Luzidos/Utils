@@ -18,11 +18,15 @@ def undo_patches(*patchers):
             patcher.start()
 
 class MockS3:
-    def __init__(self, mock_s3_data: dict, s3_read_patcher=None, s3_write_patcher=None):
+    def __init__(self, mock_s3_data: dict):
         # pop "_override_paths" from mock_s3_data
         self.override_paths = mock_s3_data.pop("_override_paths", [])
         self.mock_s3_data = mock_s3_data
 
+        self.s3_read_patcher = None
+        self.s3_write_patcher = None
+
+    def set_patchers(self, s3_read_patcher, s3_write_patcher):
         self.s3_read_patcher = s3_read_patcher
         self.s3_write_patcher = s3_write_patcher
 
@@ -122,8 +126,6 @@ class MockS3:
                 subfolders.append(f"{prefix.strip('/')}/{key}/")
 
         return subfolders
-
-        
 
     """
     ******************************************************************

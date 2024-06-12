@@ -146,17 +146,18 @@ class ModuleTest(BaseTest):
         self.state_data = self.payload["state_data"]
         self.expected_state = self.expected_data["expected_state"]
 
-        s3_read_patcher = self.patch_s3_read(self.mock_s3)
-        s3_write_patcher = self.patch_s3_write(self.mock_s3)
-        boto3_client_patcher = self.patch_boto3_client(self.mock_boto3)
-        boto3_resource_patcher = self.patch_boto3_resource(self.mock_boto3)
-
-
-        self.mock_s3 = MockS3(self.mock_data["mock_s3_data"], s3_read_patcher, s3_write_patcher)
+        self.mock_s3 = MockS3(self.mock_data["mock_s3_data"])
         self.expected_mock_s3 = MockS3(self.expected_data["expected_s3_data"])
 
         self.mock_boto3 = MockBoto3(self.mock_data["mock_boto3_data"])
         self.expected_boto3 = MockBoto3(self.expected_data["expected_boto3_data"])
+
+        s3_read_patcher = self.patch_s3_read(self.mock_s3)
+        s3_write_patcher = self.patch_s3_write(self.mock_s3)
+        self.mock_s3.set_patchers(s3_read_patcher, s3_write_patcher)
+
+        boto3_client_patcher = self.patch_boto3_client(self.mock_boto3)
+        boto3_resource_patcher = self.patch_boto3_resource(self.mock_boto3)
 
         with s3_read_patcher, s3_write_patcher, boto3_client_patcher, boto3_resource_patcher:
             self.state_data = self.function_to_test(self.user_id, self.invoice_id, self.state_data)

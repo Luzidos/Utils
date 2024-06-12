@@ -1,85 +1,8 @@
 import os
 import json
 import boto3
-from luzidos_utils.aws_io import s3_read
+from luzidos_utils.aws_io.s3 import s3_read
 
-# class MockS3:
-#     def __init__(self, data=None):
-#         # data is a dictionary where each key is a bucket name
-#         # and its value is another dictionary, where each key is an object key and its value is the object content
-#         if data is None:
-#             data = {}
-#         self.override_paths = data.pop("_override_paths", [])
-#         self.data = data
-
-#     def get_object(self, Bucket, Key):
-#         if f"{Bucket}/{Key}" in self.override_paths:
-#             s3_client = boto3.client('s3', region_name='us-west-2')
-#             return s3_client.get_object(Bucket=Bucket, Key=Key)
-#         try:
-#             bucket_data = self.data.get(Bucket, {})
-#             if Key in bucket_data:
-#                 return {'Body': bucket_data[Key]}
-#             else:
-#                 raise Exception(f"Object {Key} not found in bucket {Bucket}")
-#         except Exception as e:
-#             return {'Error': str(e)}
-
-#     def list_objects_v2(self, Bucket, Prefix=''):
-#         if f"{Bucket}/{Prefix}" in self.override_paths:
-#             s3_client = boto3.client('s3', region_name='us-west-2')
-#             return s3_client.list_objects_v2(Bucket=Bucket, Prefix=Prefix)
-#         try:
-#             bucket_data = self.data.get(Bucket, {})
-#             objects = [{'Key': key} for key in bucket_data if key.startswith(Prefix)]
-#             return {'Contents': objects}
-#         except KeyError:
-#             return {'Error': f"No bucket named {Bucket}"}
-
-#     def copy_object(self, Bucket, CopySource, Key):
-#         source_bucket, source_key = CopySource['Bucket'], CopySource['Key']
-#         if f"{Bucket}/{Key}" in self.override_paths or f"{source_bucket}/{source_key}" in self.override_paths:
-#             s3_client = boto3.client('s3', region_name='us-west-2')
-#             return s3_client.copy_object(Bucket=Bucket, CopySource=CopySource, Key=Key)
-#         try:
-#             self.data[Bucket][Key] = self.data[source_bucket][source_key]
-#             return {'CopyObjectResult': {'ETag': '"copied"', 'LastModified': 'DateTime'}}
-#         except KeyError:
-#             return {'Error': f"Failed to copy from {source_key} in {source_bucket} to {Key} in {Bucket}"}
-
-#     def upload_file(self, Filename, Bucket, Key):
-#         if f"{Bucket}/{Key}" in self.override_paths:
-#             s3_client = boto3.client('s3', region_name='us-west-2')
-#             s3_client.upload_file(Filename, Bucket, Key)
-#             return {'UploadFileResult': 'Success'}
-#         try:
-#             with open(Filename, 'rb') as f:
-#                 self.data.setdefault(Bucket, {})[Key] = f.read()
-#             return {'UploadFileResult': 'Success'}
-#         except Exception as e:
-#             return {'Error': str(e)}
-
-#     def put_object(self, Bucket, Key, Body):
-#         if f"{Bucket}/{Key}" in self.override_paths:
-#             s3_client = boto3.client('s3', region_name='us-west-2')
-#             return s3_client.put_object(Bucket=Bucket, Key=Key, Body=Body)
-#         try:
-#             self.data.setdefault(Bucket, {})[Key] = Body
-#             return {'PutObjectResult': 'Success'}
-#         except Exception as e:
-#             return {'Error': str(e)}
-
-#     def upload_fileobj(self, Fileobj, Bucket, Key):
-#         if f"{Bucket}/{Key}" in self.override_paths:
-#             s3_client = boto3.client('s3', region_name='us-west-2')
-#             s3_client.upload_fileobj(Fileobj, Bucket, Key)
-#             return {'UploadFileObjResult': 'Success'}
-#         try:
-#             Fileobj.seek(0)
-#             self.data.setdefault(Bucket, {})[Key] = Fileobj.read()
-#             return {'UploadFileObjResult': 'Success'}
-#         except Exception as e:
-#             return {'Error': str(e)}
 
 class MockS3:
     def __init__(self, mock_s3_data: dict):
@@ -265,3 +188,80 @@ class MockS3:
         current_level[path_parts[-1]] = source_content
         return True
 
+# class MockS3:
+#     def __init__(self, data=None):
+#         # data is a dictionary where each key is a bucket name
+#         # and its value is another dictionary, where each key is an object key and its value is the object content
+#         if data is None:
+#             data = {}
+#         self.override_paths = data.pop("_override_paths", [])
+#         self.data = data
+
+#     def get_object(self, Bucket, Key):
+#         if f"{Bucket}/{Key}" in self.override_paths:
+#             s3_client = boto3.client('s3', region_name='us-west-2')
+#             return s3_client.get_object(Bucket=Bucket, Key=Key)
+#         try:
+#             bucket_data = self.data.get(Bucket, {})
+#             if Key in bucket_data:
+#                 return {'Body': bucket_data[Key]}
+#             else:
+#                 raise Exception(f"Object {Key} not found in bucket {Bucket}")
+#         except Exception as e:
+#             return {'Error': str(e)}
+
+#     def list_objects_v2(self, Bucket, Prefix=''):
+#         if f"{Bucket}/{Prefix}" in self.override_paths:
+#             s3_client = boto3.client('s3', region_name='us-west-2')
+#             return s3_client.list_objects_v2(Bucket=Bucket, Prefix=Prefix)
+#         try:
+#             bucket_data = self.data.get(Bucket, {})
+#             objects = [{'Key': key} for key in bucket_data if key.startswith(Prefix)]
+#             return {'Contents': objects}
+#         except KeyError:
+#             return {'Error': f"No bucket named {Bucket}"}
+
+#     def copy_object(self, Bucket, CopySource, Key):
+#         source_bucket, source_key = CopySource['Bucket'], CopySource['Key']
+#         if f"{Bucket}/{Key}" in self.override_paths or f"{source_bucket}/{source_key}" in self.override_paths:
+#             s3_client = boto3.client('s3', region_name='us-west-2')
+#             return s3_client.copy_object(Bucket=Bucket, CopySource=CopySource, Key=Key)
+#         try:
+#             self.data[Bucket][Key] = self.data[source_bucket][source_key]
+#             return {'CopyObjectResult': {'ETag': '"copied"', 'LastModified': 'DateTime'}}
+#         except KeyError:
+#             return {'Error': f"Failed to copy from {source_key} in {source_bucket} to {Key} in {Bucket}"}
+
+#     def upload_file(self, Filename, Bucket, Key):
+#         if f"{Bucket}/{Key}" in self.override_paths:
+#             s3_client = boto3.client('s3', region_name='us-west-2')
+#             s3_client.upload_file(Filename, Bucket, Key)
+#             return {'UploadFileResult': 'Success'}
+#         try:
+#             with open(Filename, 'rb') as f:
+#                 self.data.setdefault(Bucket, {})[Key] = f.read()
+#             return {'UploadFileResult': 'Success'}
+#         except Exception as e:
+#             return {'Error': str(e)}
+
+#     def put_object(self, Bucket, Key, Body):
+#         if f"{Bucket}/{Key}" in self.override_paths:
+#             s3_client = boto3.client('s3', region_name='us-west-2')
+#             return s3_client.put_object(Bucket=Bucket, Key=Key, Body=Body)
+#         try:
+#             self.data.setdefault(Bucket, {})[Key] = Body
+#             return {'PutObjectResult': 'Success'}
+#         except Exception as e:
+#             return {'Error': str(e)}
+
+#     def upload_fileobj(self, Fileobj, Bucket, Key):
+#         if f"{Bucket}/{Key}" in self.override_paths:
+#             s3_client = boto3.client('s3', region_name='us-west-2')
+#             s3_client.upload_fileobj(Fileobj, Bucket, Key)
+#             return {'UploadFileObjResult': 'Success'}
+#         try:
+#             Fileobj.seek(0)
+#             self.data.setdefault(Bucket, {})[Key] = Fileobj.read()
+#             return {'UploadFileObjResult': 'Success'}
+#         except Exception as e:
+#             return {'Error': str(e)}

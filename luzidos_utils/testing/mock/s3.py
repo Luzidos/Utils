@@ -1,8 +1,11 @@
 import os
 import json
+from luzidos_utils.aws_io.s3 import read_file_from_s3, read_dir_filenames_from_s3, list_childdirectories, upload_file_to_s3, upload_file_obj_to_s3, upload_dict_as_json_to_s3, copy_file
 
 class MockS3:
     def __init__(self, mock_s3_data: dict):
+        # pop "_override_paths" from mock_s3_data
+        self.override_paths = mock_s3_data.pop("_override_paths", [])
         self.mock_s3_data = mock_s3_data
 
     """
@@ -18,6 +21,9 @@ class MockS3:
         The bucket_name and object_name are used as keys for nested dictionaries.
         Each "/" in the object_name is used to traverse the nested dictionaries.
         """
+        if f"{bucket_name}/{object_name}" in self.override_paths:
+            return read_file_from_s3(bucket_name, object_name)
+
         data = self.mock_s3_data[bucket_name]
         for key in object_name.split("/"):
             data = data[key]
@@ -43,6 +49,9 @@ class MockS3:
         This includes files inside subdirectories.
         This function returns the full path to each file object.
         """
+        if f"{bucket_name}/{dir_name}" in self.override_paths:
+            return read_dir_filenames_from_s3(bucket_name, dir_name)
+        
         current_level = self.mock_s3_data.get(bucket_name, {})
         path_parts = dir_name.strip('/').split('/')
 
@@ -76,6 +85,9 @@ class MockS3:
         The directories are returned as full paths.
         The directories should be immediate children.
         """
+        if f"{bucket_name}/{prefix}" in self.override_paths:
+            return list_childdirectories(bucket_name, prefix)
+        
         current_level = self.mock_s3_data.get(bucket_name, {})
         path_parts = prefix.strip('/').split('/')
 
@@ -107,6 +119,9 @@ class MockS3:
 
         We set file_path as the value of the last key in the nested dictionaries.
         """
+        if f"{bucket_name}/{object_name}" in self.override_paths:
+            return upload_file_to_s3(file_path, bucket_name, object_name)
+        
         current_level = self.mock_s3_data.setdefault(bucket_name, {})
         path_parts = object_name.strip('/').split('/')
 
@@ -121,6 +136,9 @@ class MockS3:
         """
         Mock function for upload_file_obj_to_s3
         """
+        if f"{bucket_name}/{object_name}" in self.override_paths:
+            return upload_file_obj_to_s3(file_obj, bucket_name, object_name)
+        
         current_level = self.mock_s3_data.setdefault(bucket_name, {})
         path_parts = object_name.strip('/').split('/')
 
@@ -135,6 +153,8 @@ class MockS3:
         """
         Mock function for upload_dict_as_json_to_s3
         """
+        if f"{bucket_name}/{object_name}" in self.override_paths:
+            return upload_dict_as_json_to_s3(bucket_name, dict_data, object_name)
         current_level = self.mock_s3_data.setdefault(bucket_name, {})
         path_parts = object_name.strip('/').split('/')
 
@@ -149,6 +169,8 @@ class MockS3:
         Mock function for copy_file
         
         """
+        if f"{bucket_name}/{source_file}" in self.override_paths:
+            return copy_file(bucket_name, source_file, dest_file)
         data = self.mock_s3_data[bucket_name]
         for key in source_file.split("/"):
             data = data[key]

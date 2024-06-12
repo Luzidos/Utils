@@ -102,22 +102,22 @@ class BaseTest(unittest.TestCase):
     ******************************************************************
     """
     
-    # def patch_s3_read(self, mock_s3: MockS3):
-    #     return patch.multiple(
-    #         'luzidos_utils.aws_io.s3.read',
-    #         read_file_from_s3=mock_s3.mock_read_file_from_s3,
-    #         read_dir_filenames_from_s3=mock_s3.mock_read_dir_filenames_from_s3,
-    #         list_childdirectories=mock_s3.mock_list_childdirectories
-    #     )
+    def patch_s3_read(self, mock_s3: MockS3):
+        return patch.multiple(
+            'luzidos_utils.aws_io.s3.read',
+            read_file_from_s3=mock_s3.mock_read_file_from_s3,
+            read_dir_filenames_from_s3=mock_s3.mock_read_dir_filenames_from_s3,
+            list_childdirectories=mock_s3.mock_list_childdirectories
+        )
     
-    # def patch_s3_write(self, mock_s3: MockS3):
-    #     return patch.multiple(
-    #         'luzidos_utils.aws_io.s3.write',
-    #         upload_file_to_s3=mock_s3.mock_upload_file_to_s3,
-    #         upload_file_obj_to_s3=mock_s3.mock_upload_file_obj_to_s3,
-    #         upload_dict_as_json_to_s3=mock_s3.mock_upload_dict_as_json_to_s3,
-    #         copy_file=mock_s3.mock_copy_file
-    #     )
+    def patch_s3_write(self, mock_s3: MockS3):
+        return patch.multiple(
+            'luzidos_utils.aws_io.s3.write',
+            upload_file_to_s3=mock_s3.mock_upload_file_to_s3,
+            upload_file_obj_to_s3=mock_s3.mock_upload_file_obj_to_s3,
+            upload_dict_as_json_to_s3=mock_s3.mock_upload_dict_as_json_to_s3,
+            copy_file=mock_s3.mock_copy_file
+        )
     
     def patch_boto3_client(self, mock_boto3):
         return patch(

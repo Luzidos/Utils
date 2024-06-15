@@ -4,6 +4,16 @@ from botocore.exceptions import ClientError
 
 
 def add_invoice(user_id, invoice_id, vendor_name, transaction_items, transaction_total, transaction_datetime, transaction_status):
+    """
+    Transaction_items format:
+    {
+        "item_description": "item 1 description",
+                "item_quantity": 1,
+                "item_unit_price": 100,
+                "item_total_price": 100
+    }
+    """
+
      # Initialize a session using Amazon DynamoDB
     dynamodb = boto3.resource('dynamodb')
 

@@ -2,27 +2,67 @@ import requests
 import boto3
 from botocore.exceptions import ClientError
 
+
+def add_invoice(user_id, invoice_id, vendor_name, transaction_items, transaction_total, transaction_datetime, transaction_status):
+    """
+    Transaction_items format:
+    {
+        "item_description": "item 1 description",
+                "item_quantity": 1,
+                "item_unit_price": 100,
+                "item_total_price": 100
+    }
+    """
+
+     # Initialize a session using Amazon DynamoDB
+    dynamodb = boto3.resource('dynamodb')
+
+    # Select your table
+    table = dynamodb.Table('invoiceTable-staging')
+
+    # Put the item into the table
+    try:
+        response = table.put_item(
+            Item={
+                "userID": user_id,
+                "invoiceID": invoice_id,
+                "vendorName": vendor_name,
+                "transactionItems": transaction_items,
+                "transactionTotal": transaction_total,
+                "transactionDatetime": transaction_datetime,
+                "transactionStatus": transaction_status,
+            }
+        )
+        return response
+    except ClientError as e:
+        print(e.response['Error']['Message'])
+        return None
+
 def update_invoice_status(user_id, invoice_id, status):
-    url = 'https://b7843zphhl.execute-api.us-west-2.amazonaws.com/prod'  
-    headers = {
-        'x-api-key': 'CVsju5YkVA68kGdcAATjL6GjXxdYbxjr6Nhp9L2L' 
-    }
-    body = {
-        "operation": "m.odify",
-        "data": {
-            "userID": user_id,
-            "invoiceID": invoice_id,
-            "statusOfTransaction": status
-        }
-    }
-    
-    response = requests.post(url, json=body, headers=headers)
-    
-    if response.status_code == 200:
-        return 'Entry status updated successfully'
-    else:
-        # Handle potential error cases here depending on how you want to deal with them
-        return 'Error updating entry status', response.status_code
+    # Initialize a session using Amazon DynamoDB
+    dynamodb = boto3.resource('dynamodb')
+
+    # Select your table
+    table = dynamodb.Table('invoiceTable-staging')
+
+    # Update the item in the table
+    try:
+        response = table.update_item(
+            Key={
+                "userID": user_id,
+                "invoiceID": invoice_id
+            },
+            UpdateExpression="SET transactionStatus = :status",
+            ExpressionAttributeValues={
+                ":status": status
+            },
+            ReturnValues="UPDATED_NEW"
+        )
+        return response
+    except ClientError as e:
+        print(e.response['Error']['Message'])
+        return None
+
     
 
 def add_email_and_user_to_db(email, value):
@@ -45,8 +85,17 @@ def add_email_and_user_to_db(email, value):
         print(e.response['Error']['Message'])
         return None
 
-
-    
+if __name__ == "__main__":
+    #update_invoice_status("927aa041-e5ba-4acf-ab0e-19a1c629bee9", "Test", "Incomplete!")
+    add_invoice(
+        "927aa041-e5ba-4acf-ab0e-19a1c629bee9",
+        "Test",
+        "Carranza el Pajero",
+        [],
+        12000,
+        "2024-03-10T19:20:02.708841",
+        "Pending"
+    )
     
     
     

@@ -204,26 +204,28 @@ class MockS3:
         Mock function for copy_file
         
         """
-        if f"{bucket_name}/{source_file}" in self.override_paths and f"{bucket_name}/{dest_file}" in self.override_paths:
-            for patcher in self.patchers:
-                patcher.stop()
-                res = s3_write.copy_file(bucket_name, source_file, dest_file)
-            for patcher in self.patchers:
-                patcher.start()
-            return res
-        data = self.mock_s3_data[bucket_name]
-        for key in source_file.split("/"):
-            data = data[key]
+        source_content = self.mock_read_file_from_s3(bucket_name, source_file)
+        self.mock_upload_file_obj_to_s3(source_content, bucket_name, dest_file)
+        # if f"{bucket_name}/{dest_file}" in self.override_paths:
+        #     for patcher in self.patchers:
+        #         patcher.stop()
+        #         res = s3_write.upload_file
+        #     for patcher in self.patchers:
+        #         patcher.start()
+        #     return res
+        # data = self.mock_s3_data[bucket_name]
+        # for key in source_file.split("/"):
+        #     data = data[key]
 
-        source_content = data
+        # source_content = data
 
-        current_level = self.mock_s3_data.setdefault(bucket_name, {})
-        path_parts = dest_file.strip('/').split('/')
+        # current_level = self.mock_s3_data.setdefault(bucket_name, {})
+        # path_parts = dest_file.strip('/').split('/')
 
-        for part in path_parts[:-1]:
-            current_level = current_level.setdefault(part, {})
+        # for part in path_parts[:-1]:
+        #     current_level = current_level.setdefault(part, {})
     
-        current_level[path_parts[-1]] = source_content
+        # current_level[path_parts[-1]] = source_content
         return True
 
 # class MockS3:

@@ -177,7 +177,7 @@ def send_message(from_address, to_address, subject, body, attachments=None, cc=N
         response = ses.send_raw_email(
             Source=msg['From'],
             Destinations=[msg['To']] + ([cc] if cc else []),
-            RawMessage={'Data': msg.as_bytes()}
+            RawMessage={'Data': msg.as_string()}
         )
         print("Email sent! Message ID:", response['MessageId'])
 

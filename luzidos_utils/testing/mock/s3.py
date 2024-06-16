@@ -35,20 +35,25 @@ class MockS3:
             for patcher in self.patchers:
                 patcher.start()
             return res
-
-        data = self.mock_s3_data[bucket_name]
-        for key in object_name.split("/"):
-            data = data[key]
-
-        if isinstance(data, dict):
-            return json.dumps(data)
         
+        try:
+            data = self.mock_s3_data[bucket_name]
+            for key in object_name.split("/"):
+                data = data[key]
+
+            if isinstance(data, dict):
+                return json.dumps(data)
+            
+            
+            # If file is a valid file path, then read the file
+            if os.path.isfile(str(data)):
+                with open(str(data), "r") as f:
+                    data = f.read()
+                    return data
+        except Exception as e:
+            print(e, f"\nMock file not found in {bucket_name}/{object_name}")
+            return None
         
-        # If file is a valid file path, then read the file
-        if os.path.isfile(str(data)):
-            with open(str(data), "r") as f:
-                data = f.read()
-                return data
         return data
 
     def mock_read_dir_filenames_from_s3(self, bucket_name, dir_name):

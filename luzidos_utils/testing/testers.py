@@ -154,14 +154,19 @@ class ModuleTest(BaseTest):
 
         s3_read_patcher = self.patch_s3_read(self.mock_s3)
         s3_write_patcher = self.patch_s3_write(self.mock_s3)
-        self.mock_s3.set_patchers(s3_read_patcher, s3_write_patcher)
 
         boto3_client_patcher = self.patch_boto3_client(self.mock_boto3)
         boto3_resource_patcher = self.patch_boto3_resource(self.mock_boto3)
 
-        with s3_read_patcher, s3_write_patcher, boto3_client_patcher, boto3_resource_patcher:
-            self.state_data = self.function_to_test(self.user_id, self.invoice_id, self.state_data)
-        
+        patchers = [s3_read_patcher, s3_write_patcher, boto3_client_patcher, boto3_resource_patcher]
+        self.mock_s3.set_patchers(patchers)
+
+        for patcher in patchers:
+            patcher.start()
+        self.state_data = self.function_to_test(self.user_id, self.invoice_id, self.state_data)
+        for patcher in patchers:
+            patcher.stop()
+
         self.assert_state_data()
         self.assert_transaction_data()
         self.assert_user_data()

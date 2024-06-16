@@ -1,7 +1,7 @@
 import os
 import json
 import boto3
-import luzidos_utils.aws_io.s3 as s3_read
+import luzidos_utils.aws_io.s3.read as s3_read
 import luzidos_utils.aws_io.s3.write as s3_write
 import contextlib
 

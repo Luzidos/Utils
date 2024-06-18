@@ -17,8 +17,7 @@ class MockS3:
     def set_patchers(self, patchers):
         self.patchers = patchers
 
-    def should_override(self, bucket_name, object_name):
-        full_path = f"{bucket_name}/{object_name}"
+    def should_override(self, full_path):
         for path in self.override_paths:
             if path.startswith(REGEX_TOKEN):
                 pattern = path.split(REGEX_TOKEN)[1]

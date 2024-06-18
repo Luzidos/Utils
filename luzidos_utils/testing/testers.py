@@ -154,7 +154,7 @@ class BaseTest(unittest.TestCase):
                 expected[key][i] = actual[key][i]
 
     def _handle_random_values(self, expected, actual, key, exp_value):
-        pattern = re.compile(str(exp_value).replace(self.RANDOM, r".+"))
+        pattern = re.compile(str(exp_value).replace(self.RANDOM, ""))
         if isinstance(key, int):  # When the key is an index in a list
             assert pattern.fullmatch(str(actual[key])), f"Value at index {key} did not match. Expected pattern: {exp_value}, but was: {actual[key]}"
         else:
@@ -163,7 +163,7 @@ class BaseTest(unittest.TestCase):
         expected[key] = actual[key]
 
     def _match_pattern_key(self, actual, pattern_key):
-        pattern = re.compile(pattern_key.replace(self.RANDOM, r".+"))
+        pattern = re.compile(pattern_key.replace(self.RANDOM, ""))
         for act_key in actual.keys():
             if pattern.fullmatch(act_key):
                 return act_key

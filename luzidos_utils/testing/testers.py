@@ -133,7 +133,7 @@ class BaseTest(unittest.TestCase):
         # Iterate over list items
         for i in range(len(exp_value)):
             if isinstance(exp_value[i], dict):
-                self.populate_expected_with_actual(exp_value[i], actual[key][i])
+                self._populate_expected_with_actual(exp_value[i], actual[key][i])
             elif self.RANDOM in str(exp_value[i]):
                 self._handle_random_values(expected[key], actual[key], i, exp_value[i])
             else:

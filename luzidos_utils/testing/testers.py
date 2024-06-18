@@ -124,7 +124,7 @@ class BaseTest(unittest.TestCase):
         
         for key, exp_value in list(expected.items()):
             # Check if the key has a random pattern
-            if self.RANDOM in key:
+            if key.startswith(self.RANDOM):
                 matched_key = self._match_pattern_key(actual, key)
                 assert matched_key, f"No matching keys found for pattern: {key}"
                 # Update the key in expected dict
@@ -137,7 +137,7 @@ class BaseTest(unittest.TestCase):
             elif isinstance(exp_value, list):
                 # Handle lists by iterating over items
                 self._handle_list(expected, actual, key, exp_value)
-            elif self.RANDOM in str(exp_value):
+            elif str(exp_value).startswith(self.RANDOM):
                 # Handle random values in non-list, non-dict types
                 self._handle_random_values(expected, actual, key, exp_value)
 
@@ -148,13 +148,13 @@ class BaseTest(unittest.TestCase):
         for i in range(len(exp_value)):
             if isinstance(exp_value[i], dict):
                 self._populate_expected_with_actual(exp_value[i], actual[key][i])
-            elif self.RANDOM in str(exp_value[i]):
+            elif str(exp_value[i]).startswith(self.RANDOM):
                 self._handle_random_values(expected[key], actual[key], i, exp_value[i])
             else:
                 expected[key][i] = actual[key][i]
 
     def _handle_random_values(self, expected, actual, key, exp_value):
-        pattern = re.compile(str(exp_value).replace(self.RANDOM, ""))
+        pattern = re.compile(str(exp_value).split(self.RANDOM)[1])
         if isinstance(key, int):  # When the key is an index in a list
             assert pattern.fullmatch(str(actual[key])), f"Value at index {key} did not match. Expected pattern: {exp_value}, but was: {actual[key]}"
         else:
@@ -163,7 +163,7 @@ class BaseTest(unittest.TestCase):
         expected[key] = actual[key]
 
     def _match_pattern_key(self, actual, pattern_key):
-        pattern = re.compile(pattern_key.replace(self.RANDOM, ""))
+        pattern = re.compile(pattern_key.split(self.RANDOM)[1])
         for act_key in actual.keys():
             if pattern.fullmatch(act_key):
                 return act_key

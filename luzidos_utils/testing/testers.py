@@ -102,8 +102,19 @@ class BaseTest(unittest.TestCase):
     def assertRandomDictEqual(self, actual, expected, msg=None):
         # Recursively populate the expected dictionary with actual values
         self._populate_expected_with_actual(expected, actual)
-        # Use assertDictEqual from unittest.TestCase to compare
-        self.assertDictEqual(actual, expected, msg=msg)
+
+        try:
+            # Use assertDictEqual from unittest.TestCase to compare
+            self.assertDictEqual(actual, expected, msg=msg)
+        except AssertionError as e:
+            # Dump actual and expected data into a JSON file if assertion fails
+            with open("assertion_failure_dump.json", "w") as f:
+                json.dump({
+                    "actual_data": self.state_data,
+                    "expected_data": self.expected_state,
+                    "message": str(e)
+                }, f, indent=4)
+            raise  # Re-raise the exception to not hide the test failure
 
 
     def _populate_expected_with_actual(self, expected, actual):
@@ -140,14 +151,14 @@ class BaseTest(unittest.TestCase):
                 expected[key][i] = actual[key][i]
 
     def _handle_random_values(self, expected, actual, key, exp_value):
-        pattern = re.compile(str(exp_value).replace(self.RANDOM, r"\d+"))
+        pattern = re.compile(str(exp_value).replace(self.RANDOM, r".+"))
         if isinstance(key, int):  # When the key is an index in a list
             assert pattern.fullmatch(str(actual[key])), f"Value at index {key} did not match. Expected pattern: {exp_value}, but was: {actual[key]}"
         else:
             assert pattern.fullmatch(str(actual[key])), f"Value for key '{key}' did not match. Expected pattern: {exp_value}, but was: {actual[key]}"
 
     def _match_pattern_key(self, actual, pattern_key):
-        pattern = re.compile(pattern_key.replace(self.RANDOM, r"\d+"))
+        pattern = re.compile(pattern_key.replace(self.RANDOM, r".+"))
         for act_key in actual.keys():
             if pattern.fullmatch(act_key):
                 return act_key

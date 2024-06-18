@@ -112,8 +112,8 @@ class BaseTest(unittest.TestCase):
             save_path = os.path.join(root_dir, "assertion_failure_dump.json")
             with open(save_path, "w") as f:
                 json.dump({
-                    "actual_data": self.state_data,
-                    "expected_data": self.expected_state,
+                    "actual_data": actual,
+                    "expected_data": expected,
                     "message": str(e)
                 }, f, indent=4)
             raise  # Re-raise the exception to not hide the test failure
@@ -141,6 +141,7 @@ class BaseTest(unittest.TestCase):
                 # Handle random values in non-list, non-dict types
                 self._handle_random_values(expected, actual, key, exp_value)
 
+
     def _handle_list(self, expected, actual, key, exp_value):
         assert isinstance(actual[key], list), f"Expected a list for key '{key}', but got a different type."
         # Iterate over list items
@@ -158,6 +159,8 @@ class BaseTest(unittest.TestCase):
             assert pattern.fullmatch(str(actual[key])), f"Value at index {key} did not match. Expected pattern: {exp_value}, but was: {actual[key]}"
         else:
             assert pattern.fullmatch(str(actual[key])), f"Value for key '{key}' did not match. Expected pattern: {exp_value}, but was: {actual[key]}"
+
+        expected[key] = actual[key]
 
     def _match_pattern_key(self, actual, pattern_key):
         pattern = re.compile(pattern_key.replace(self.RANDOM, r".+"))

@@ -3,6 +3,8 @@ import json
 import boto3
 import luzidos_utils.aws_io.s3.read as s3_read
 import luzidos_utils.aws_io.s3.write as s3_write
+from luzidos_utils.constants.format import REGEX_TOKEN
+import re
 
 class MockS3:
     def __init__(self, mock_s3_data: dict):
@@ -15,6 +17,17 @@ class MockS3:
     def set_patchers(self, patchers):
         self.patchers = patchers
 
+    def should_override(self, bucket_name, object_name):
+        full_path = f"{bucket_name}/{object_name}"
+        for path in self.override_paths:
+            if path.startswith(REGEX_TOKEN):
+                pattern = path.split(REGEX_TOKEN)[1]
+                if re.match(pattern, full_path):
+                    return True
+            elif path == full_path:
+                return True
+        return False
+            
     """
     ******************************************************************
                     luzidos_utils.aws_io.s3.read Mock Functions
@@ -28,7 +41,7 @@ class MockS3:
         The bucket_name and object_name are used as keys for nested dictionaries.
         Each "/" in the object_name is used to traverse the nested dictionaries.
         """
-        if f"{bucket_name}/{object_name}" in self.override_paths:
+        if self.should_override(f"{bucket_name}/{object_name}"):
             for patcher in self.patchers:
                 patcher.stop()
             res = s3_read.read_file_from_s3(bucket_name, object_name)
@@ -66,7 +79,7 @@ class MockS3:
         This includes files inside subdirectories.
         This function returns the full path to each file object.
         """
-        if f"{bucket_name}/{dir_name}" in self.override_paths:
+        if self.should_override(f"{bucket_name}/{dir_name}"):
             for patcher in self.patchers:
                 patcher.stop()
                 res = s3_read.read_dir_filenames_from_s3(bucket_name, dir_name)
@@ -107,7 +120,7 @@ class MockS3:
         The directories are returned as full paths.
         The directories should be immediate children.
         """
-        if f"{bucket_name}/{prefix}" in self.override_paths:
+        if self.should_override(f"{bucket_name}/{prefix}"):
             for patcher in self.patchers:
                 patcher.stop()
                 res = s3_read.list_childdirectories(bucket_name, prefix)
@@ -144,7 +157,7 @@ class MockS3:
 
         We set file_path as the value of the last key in the nested dictionaries.
         """
-        if f"{bucket_name}/{object_name}" in self.override_paths:
+        if self.should_override(f"{bucket_name}/{object_name}"):
             for patcher in self.patchers:
                 patcher.stop()
                 res = s3_write.upload_file_to_s3(file_path, bucket_name, object_name)
@@ -166,7 +179,7 @@ class MockS3:
         """
         Mock function for upload_file_obj_to_s3
         """
-        if f"{bucket_name}/{object_name}" in self.override_paths:
+        if self.should_override(f"{bucket_name}/{object_name}"):
             for patcher in self.patchers:
                 patcher.stop()
                 res = s3_write.upload_file_obj_to_s3(file_obj, bucket_name, object_name)
@@ -188,7 +201,7 @@ class MockS3:
         """
         Mock function for upload_dict_as_json_to_s3
         """
-        if f"{bucket_name}/{object_name}" in self.override_paths:
+        if self.should_override(f"{bucket_name}/{object_name}"):
             for patcher in self.patchers:
                 patcher.stop()
                 res = s3_write.upload_dict_as_json_to_s3(bucket_name, dict_data, object_name)

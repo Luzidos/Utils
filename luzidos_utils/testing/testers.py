@@ -12,6 +12,7 @@ import runpy
 import tempfile
 import re
 
+from luzidos_utils.constants.format import REGEX_TOKEN
 
 def load_test_config_paths(test_configs_dir):
     """
@@ -61,7 +62,7 @@ class BaseTest(unittest.TestCase):
         self.maxDiff = None
         self.load_test_data(self.test_config_path)
 
-        self.REGEX = "<!***REGEX***!>"
+        REGEX_TOKEN = "<!***REGEX_TOKEN***!>"
     
     """
     ******************************************************************
@@ -124,7 +125,7 @@ class BaseTest(unittest.TestCase):
         
         for key, exp_value in list(expected.items()):
             # Check if the key has a random pattern
-            if key.startswith(self.REGEX):
+            if key.startswith(REGEX_TOKEN):
                 matched_key = self._match_regex_key(actual, key)
                 assert matched_key, f"No matching keys found for pattern: {key}"
                 # Update the key in expected dict
@@ -137,7 +138,7 @@ class BaseTest(unittest.TestCase):
             elif isinstance(exp_value, list):
                 # Handle lists by iterating over items
                 self._handle_list(expected, actual, key, exp_value)
-            elif str(exp_value).startswith(self.REGEX):
+            elif str(exp_value).startswith(REGEX_TOKEN):
                 # Handle random values in non-list, non-dict types
                 self._handle_regex_values(expected, actual, key, exp_value)
 
@@ -148,13 +149,13 @@ class BaseTest(unittest.TestCase):
         for i in range(len(exp_value)):
             if isinstance(exp_value[i], dict):
                 self._populate_expected_with_actual(exp_value[i], actual[key][i])
-            elif str(exp_value[i]).startswith(self.REGEX):
+            elif str(exp_value[i]).startswith(REGEX_TOKEN):
                 self._handle_regex_values(expected[key], actual[key], i, exp_value[i])
             else:
                 expected[key][i] = actual[key][i]
 
     def _handle_regex_values(self, expected, actual, key, exp_value):
-        pattern = re.compile(str(exp_value).split(self.REGEX)[1])
+        pattern = re.compile(str(exp_value).split(REGEX_TOKEN)[1])
         if isinstance(key, int):  # When the key is an index in a list
             assert pattern.fullmatch(str(actual[key])), f"Value at index {key} did not match. Expected pattern: {exp_value}, but was: {actual[key]}"
         else:
@@ -163,7 +164,7 @@ class BaseTest(unittest.TestCase):
         expected[key] = actual[key]
 
     def _match_regex_key(self, actual, pattern_key):
-        pattern = re.compile(pattern_key.split(self.REGEX)[1])
+        pattern = re.compile(pattern_key.split(REGEX_TOKEN)[1])
         for act_key in actual.keys():
             if pattern.fullmatch(act_key):
                 return act_key

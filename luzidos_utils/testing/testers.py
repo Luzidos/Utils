@@ -10,6 +10,7 @@ from luzidos_utils.aws_io.s3 import read
 from luzidos_utils.aws_io.s3 import write
 import runpy
 import tempfile
+import re
 
 
 def load_test_config_paths(test_configs_dir):
@@ -59,6 +60,8 @@ class BaseTest(unittest.TestCase):
         self.expected_data = None
         self.maxDiff = None
         self.load_test_data(self.test_config_path)
+
+        self.RANDOM = "<!***RANDOM***!>"
     
     """
     ******************************************************************
@@ -93,7 +96,51 @@ class BaseTest(unittest.TestCase):
         self.payload = test_data["payload"]
         self.mock_data = test_data["mock_data"]
         self.expected_data = test_data["expected_data"]
+
+    
+
+    def assertRandomDictEqual(self, actual, expected):
+        # Recursively populate the expected dictionary with actual values
+        self._populate_expected_with_actual(expected, actual)
+        # Use assertDictEqual from unittest.TestCase to compare
+        self.assertRandomDictEqual(actual, expected)
+
+    def _populate_expected_with_actual(self, expected, actual):
+        assert isinstance(expected, dict) and isinstance(actual, dict), "Both expected and actual should be dictionaries."
         
+        for key, exp_value in list(expected.items()):
+            # Check if the key has a random pattern
+            if self.RANDOM in key:
+                matched_key = self._match_pattern_key(actual, key)
+                assert matched_key, f"No matching keys found for pattern: {key}"
+                # Update the key in expected dict
+                expected[matched_key] = expected.pop(key)
+                key = matched_key
+            
+            if isinstance(exp_value, dict):
+                # Recursive call for nested dictionaries
+                self._populate_expected_with_actual(expected[key], actual[key])
+            elif self.RANDOM in exp_value:
+                # Generate pattern for the value
+                pattern = re.compile(exp_value.replace(self.RANDOM, r"\d+"))
+                # Match and update the expected value with actual value
+                for act_key, act_value in actual.items():
+                    if pattern.fullmatch(act_value):
+                        expected[key] = act_value
+                        break
+                assert pattern.fullmatch(actual[key]), f"Value for key '{key}' did not match. Expected pattern: {exp_value}, but was: {actual[key]}"
+            else:
+                # For non-random, non-dict values, direct comparison
+                expected[key] = actual[key]
+
+    def _match_pattern_key(self, actual, pattern_key):
+        # Create a regex pattern from the key
+        pattern = re.compile(pattern_key.replace(self.RANDOM, r"\d+"))
+        # Match against all actual keys
+        for act_key in actual.keys():
+            if pattern.fullmatch(act_key):
+                return act_key
+        return None
 
 
     """
@@ -185,7 +232,7 @@ class ModuleTest(BaseTest):
 
     def assert_state_data(self):
         msg = f"State data does not match expected data after running {self.module_name}"
-        self.assertDictEqual(self.state_data, self.expected_state, msg=msg)
+        self.assertRandomDictEqual(self.state_data, self.expected_state, msg=msg)
     
     def assert_transaction_data(self):
         msg = f"Transaction data does not match expected data after running {self.module_name}"
@@ -193,7 +240,7 @@ class ModuleTest(BaseTest):
             transaction_data = read.read_transaction_data_from_s3(self.user_id, self.invoice_id)
         with self.patch_s3_read(self.expected_mock_s3):
             expected_transaction_data = read.read_transaction_data_from_s3(self.user_id, self.invoice_id)
-        self.assertDictEqual(transaction_data, expected_transaction_data, msg=msg)
+        self.assertRandomDictEqual(transaction_data, expected_transaction_data, msg=msg)
 
     def assert_user_data(self):
         msg = f"User data does not match expected data after running {self.module_name}"
@@ -201,18 +248,18 @@ class ModuleTest(BaseTest):
             user_data = read.read_user_data_from_s3(self.user_id)
         with self.patch_s3_read(self.expected_mock_s3):
             expected_user_data = read.read_user_data_from_s3(self.user_id)
-        self.assertDictEqual(user_data, expected_user_data, msg=msg)
+        self.assertRandomDictEqual(user_data, expected_user_data, msg=msg)
     
     def assert_s3_data(self):
         msg = f"Luzidosdatadump data does not match expected data after running {self.module_name}"
 
-        self.assertDictEqual(self.mock_s3.mock_s3_data, self.expected_mock_s3.mock_s3_data, msg=msg)
+        self.assertRandomDictEqual(self.mock_s3.mock_s3_data, self.expected_mock_s3.mock_s3_data, msg=msg)
 
     def assert_email_s3_data(self):
         msg = f"Email data does not match expected data after running {self.module_name}"
         mock_email_data = self.mock_s3.mock_s3_data["luzidosdatadump"]["public"][self.user_id]["emails"]
         expected_email_data = self.expected_mock_s3.mock_s3_data["luzidosdatadump"]["public"][self.user_id]["emails"]
-        self.assertDictEqual(mock_email_data, expected_email_data, msg=msg)
+        self.assertRandomDictEqual(mock_email_data, expected_email_data, msg=msg)
 
     def assert_eventbridge_data(self):
         msg = f"Eventbridge data does not match expected data after running {self.module_name}"
@@ -222,7 +269,7 @@ class ModuleTest(BaseTest):
             mock_eventbridge_data = self.mock_boto3.mock_data["eventbridge_data"]
         if "eventbridge_data" in self.expected_boto3.mock_data:
             expected_eventbridge_data = self.expected_boto3.mock_data["eventbridge_data"]
-        self.assertDictEqual(mock_eventbridge_data, expected_eventbridge_data, msg=msg)
+        self.assertRandomDictEqual(mock_eventbridge_data, expected_eventbridge_data, msg=msg)
     
     def assert_workmail_data(self):
         msg = f"Workmail data does not match expected data after running {self.module_name}"
@@ -232,11 +279,11 @@ class ModuleTest(BaseTest):
             mock_workmail_data = self.mock_boto3.mock_data["workmail_data"]
         if "workmail_data" in self.expected_boto3.mock_data:
             expected_workmail_data = self.expected_boto3.mock_data["workmail_data"]
-        self.assertDictEqual(mock_workmail_data, expected_workmail_data, msg=msg)
+        self.assertRandomDictEqual(mock_workmail_data, expected_workmail_data, msg=msg)
 
     def assert_boto3_data(self):
         msg = f"Boto3 data does not match expected data after running {self.module_name}"
-        self.assertDictEqual(self.mock_boto3.mock_data, self.expected_boto3.mock_data, msg=msg)
+        self.assertRandomDictEqual(self.mock_boto3.mock_data, self.expected_boto3.mock_data, msg=msg)
 
     def __str__(self):
         test_name = self.test_config_path.split("configs/")[1]

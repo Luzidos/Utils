@@ -99,11 +99,11 @@ class BaseTest(unittest.TestCase):
 
     
 
-    def assertRandomDictEqual(self, actual, expected):
+    def assertRandomDictEqual(self, actual, expected, msg=None):
         # Recursively populate the expected dictionary with actual values
         self._populate_expected_with_actual(expected, actual)
         # Use assertDictEqual from unittest.TestCase to compare
-        self.assertRandomDictEqual(actual, expected)
+        self.assertDictEqual(actual, expected, msg=msg)
 
     def _populate_expected_with_actual(self, expected, actual):
         assert isinstance(expected, dict) and isinstance(actual, dict), "Both expected and actual should be dictionaries."

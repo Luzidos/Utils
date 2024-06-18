@@ -105,6 +105,7 @@ class BaseTest(unittest.TestCase):
         # Use assertDictEqual from unittest.TestCase to compare
         self.assertDictEqual(actual, expected, msg=msg)
 
+
     def _populate_expected_with_actual(self, expected, actual):
         assert isinstance(expected, dict) and isinstance(actual, dict), "Both expected and actual should be dictionaries."
         
@@ -120,23 +121,33 @@ class BaseTest(unittest.TestCase):
             if isinstance(exp_value, dict):
                 # Recursive call for nested dictionaries
                 self._populate_expected_with_actual(expected[key], actual[key])
-            elif self.RANDOM in exp_value:
-                # Generate pattern for the value
-                pattern = re.compile(exp_value.replace(self.RANDOM, r"\d+"))
-                # Match and update the expected value with actual value
-                for act_key, act_value in actual.items():
-                    if pattern.fullmatch(act_value):
-                        expected[key] = act_value
-                        break
-                assert pattern.fullmatch(actual[key]), f"Value for key '{key}' did not match. Expected pattern: {exp_value}, but was: {actual[key]}"
+            elif isinstance(exp_value, list):
+                # Handle lists by iterating over items
+                self._handle_list(expected, actual, key, exp_value)
+            elif self.RANDOM in str(exp_value):
+                # Handle random values in non-list, non-dict types
+                self._handle_random_values(expected, actual, key, exp_value)
+
+    def _handle_list(self, expected, actual, key, exp_value):
+        assert isinstance(actual[key], list), f"Expected a list for key '{key}', but got a different type."
+        # Iterate over list items
+        for i in range(len(exp_value)):
+            if isinstance(exp_value[i], dict):
+                self.populate_expected_with_actual(exp_value[i], actual[key][i])
+            elif self.RANDOM in str(exp_value[i]):
+                self._handle_random_values(expected[key], actual[key], i, exp_value[i])
             else:
-                # For non-random, non-dict values, direct comparison
-                expected[key] = actual[key]
+                expected[key][i] = actual[key][i]
+
+    def _handle_random_values(self, expected, actual, key, exp_value):
+        pattern = re.compile(str(exp_value).replace(self.RANDOM, r"\d+"))
+        if isinstance(key, int):  # When the key is an index in a list
+            assert pattern.fullmatch(str(actual[key])), f"Value at index {key} did not match. Expected pattern: {exp_value}, but was: {actual[key]}"
+        else:
+            assert pattern.fullmatch(str(actual[key])), f"Value for key '{key}' did not match. Expected pattern: {exp_value}, but was: {actual[key]}"
 
     def _match_pattern_key(self, actual, pattern_key):
-        # Create a regex pattern from the key
         pattern = re.compile(pattern_key.replace(self.RANDOM, r"\d+"))
-        # Match against all actual keys
         for act_key in actual.keys():
             if pattern.fullmatch(act_key):
                 return act_key

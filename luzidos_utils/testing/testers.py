@@ -61,7 +61,7 @@ class BaseTest(unittest.TestCase):
         self.maxDiff = None
         self.load_test_data(self.test_config_path)
 
-        self.RANDOM = "<!***RANDOM***!>"
+        self.REGEX = "<!***REGEX***!>"
     
     """
     ******************************************************************
@@ -99,7 +99,7 @@ class BaseTest(unittest.TestCase):
 
     
 
-    def assertRandomDictEqual(self, actual, expected, msg=None):
+    def assertRegexDictEqual(self, actual, expected, msg=None):
         # Recursively populate the expected dictionary with actual values
         self._populate_expected_with_actual(expected, actual)
 
@@ -124,8 +124,8 @@ class BaseTest(unittest.TestCase):
         
         for key, exp_value in list(expected.items()):
             # Check if the key has a random pattern
-            if key.startswith(self.RANDOM):
-                matched_key = self._match_pattern_key(actual, key)
+            if key.startswith(self.REGEX):
+                matched_key = self._match_regex_key(actual, key)
                 assert matched_key, f"No matching keys found for pattern: {key}"
                 # Update the key in expected dict
                 expected[matched_key] = expected.pop(key)
@@ -137,9 +137,9 @@ class BaseTest(unittest.TestCase):
             elif isinstance(exp_value, list):
                 # Handle lists by iterating over items
                 self._handle_list(expected, actual, key, exp_value)
-            elif str(exp_value).startswith(self.RANDOM):
+            elif str(exp_value).startswith(self.REGEX):
                 # Handle random values in non-list, non-dict types
-                self._handle_random_values(expected, actual, key, exp_value)
+                self._handle_regex_values(expected, actual, key, exp_value)
 
 
     def _handle_list(self, expected, actual, key, exp_value):
@@ -148,13 +148,13 @@ class BaseTest(unittest.TestCase):
         for i in range(len(exp_value)):
             if isinstance(exp_value[i], dict):
                 self._populate_expected_with_actual(exp_value[i], actual[key][i])
-            elif str(exp_value[i]).startswith(self.RANDOM):
-                self._handle_random_values(expected[key], actual[key], i, exp_value[i])
+            elif str(exp_value[i]).startswith(self.REGEX):
+                self._handle_regex_values(expected[key], actual[key], i, exp_value[i])
             else:
                 expected[key][i] = actual[key][i]
 
-    def _handle_random_values(self, expected, actual, key, exp_value):
-        pattern = re.compile(str(exp_value).split(self.RANDOM)[1])
+    def _handle_regex_values(self, expected, actual, key, exp_value):
+        pattern = re.compile(str(exp_value).split(self.REGEX)[1])
         if isinstance(key, int):  # When the key is an index in a list
             assert pattern.fullmatch(str(actual[key])), f"Value at index {key} did not match. Expected pattern: {exp_value}, but was: {actual[key]}"
         else:
@@ -162,8 +162,8 @@ class BaseTest(unittest.TestCase):
 
         expected[key] = actual[key]
 
-    def _match_pattern_key(self, actual, pattern_key):
-        pattern = re.compile(pattern_key.split(self.RANDOM)[1])
+    def _match_regex_key(self, actual, pattern_key):
+        pattern = re.compile(pattern_key.split(self.REGEX)[1])
         for act_key in actual.keys():
             if pattern.fullmatch(act_key):
                 return act_key
@@ -259,7 +259,7 @@ class ModuleTest(BaseTest):
 
     def assert_state_data(self):
         msg = f"State data does not match expected data after running {self.module_name}"
-        self.assertRandomDictEqual(self.state_data, self.expected_state, msg=msg)
+        self.assertRegexDictEqual(self.state_data, self.expected_state, msg=msg)
     
     def assert_transaction_data(self):
         msg = f"Transaction data does not match expected data after running {self.module_name}"
@@ -267,7 +267,7 @@ class ModuleTest(BaseTest):
             transaction_data = read.read_transaction_data_from_s3(self.user_id, self.invoice_id)
         with self.patch_s3_read(self.expected_mock_s3):
             expected_transaction_data = read.read_transaction_data_from_s3(self.user_id, self.invoice_id)
-        self.assertRandomDictEqual(transaction_data, expected_transaction_data, msg=msg)
+        self.assertRegexDictEqual(transaction_data, expected_transaction_data, msg=msg)
 
     def assert_user_data(self):
         msg = f"User data does not match expected data after running {self.module_name}"
@@ -275,18 +275,18 @@ class ModuleTest(BaseTest):
             user_data = read.read_user_data_from_s3(self.user_id)
         with self.patch_s3_read(self.expected_mock_s3):
             expected_user_data = read.read_user_data_from_s3(self.user_id)
-        self.assertRandomDictEqual(user_data, expected_user_data, msg=msg)
+        self.assertRegexDictEqual(user_data, expected_user_data, msg=msg)
     
     def assert_s3_data(self):
         msg = f"Luzidosdatadump data does not match expected data after running {self.module_name}"
 
-        self.assertRandomDictEqual(self.mock_s3.mock_s3_data, self.expected_mock_s3.mock_s3_data, msg=msg)
+        self.assertRegexDictEqual(self.mock_s3.mock_s3_data, self.expected_mock_s3.mock_s3_data, msg=msg)
 
     def assert_email_s3_data(self):
         msg = f"Email data does not match expected data after running {self.module_name}"
         mock_email_data = self.mock_s3.mock_s3_data["luzidosdatadump"]["public"][self.user_id]["emails"]
         expected_email_data = self.expected_mock_s3.mock_s3_data["luzidosdatadump"]["public"][self.user_id]["emails"]
-        self.assertRandomDictEqual(mock_email_data, expected_email_data, msg=msg)
+        self.assertRegexDictEqual(mock_email_data, expected_email_data, msg=msg)
 
     def assert_eventbridge_data(self):
         msg = f"Eventbridge data does not match expected data after running {self.module_name}"
@@ -296,7 +296,7 @@ class ModuleTest(BaseTest):
             mock_eventbridge_data = self.mock_boto3.mock_data["eventbridge_data"]
         if "eventbridge_data" in self.expected_boto3.mock_data:
             expected_eventbridge_data = self.expected_boto3.mock_data["eventbridge_data"]
-        self.assertRandomDictEqual(mock_eventbridge_data, expected_eventbridge_data, msg=msg)
+        self.assertRegexDictEqual(mock_eventbridge_data, expected_eventbridge_data, msg=msg)
     
     def assert_workmail_data(self):
         msg = f"Workmail data does not match expected data after running {self.module_name}"
@@ -306,11 +306,11 @@ class ModuleTest(BaseTest):
             mock_workmail_data = self.mock_boto3.mock_data["workmail_data"]
         if "workmail_data" in self.expected_boto3.mock_data:
             expected_workmail_data = self.expected_boto3.mock_data["workmail_data"]
-        self.assertRandomDictEqual(mock_workmail_data, expected_workmail_data, msg=msg)
+        self.assertRegexDictEqual(mock_workmail_data, expected_workmail_data, msg=msg)
 
     def assert_boto3_data(self):
         msg = f"Boto3 data does not match expected data after running {self.module_name}"
-        self.assertRandomDictEqual(self.mock_boto3.mock_data, self.expected_boto3.mock_data, msg=msg)
+        self.assertRegexDictEqual(self.mock_boto3.mock_data, self.expected_boto3.mock_data, msg=msg)
 
     def __str__(self):
         test_name = self.test_config_path.split("configs/")[1]

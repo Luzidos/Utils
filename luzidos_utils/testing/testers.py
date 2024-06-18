@@ -108,7 +108,9 @@ class BaseTest(unittest.TestCase):
             self.assertDictEqual(actual, expected, msg=msg)
         except AssertionError as e:
             # Dump actual and expected data into a JSON file if assertion fails
-            with open("assertion_failure_dump.json", "w") as f:
+            root_dir = self.test_config_path.split("configs/")[0]
+            save_path = os.path.join(root_dir, "assertion_failure_dump.json")
+            with open(save_path, "w") as f:
                 json.dump({
                     "actual_data": self.state_data,
                     "expected_data": self.expected_state,

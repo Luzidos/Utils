@@ -101,10 +101,11 @@ class BaseTest(unittest.TestCase):
     
 
     def assertRegexDictEqual(self, actual, expected, msg=None):
-        # Recursively populate the expected dictionary with actual values
-        self._populate_expected_with_actual(expected, actual)
+
 
         try:
+            # Recursively populate the expected dictionary with actual values
+            self._populate_expected_with_actual(expected, actual)
             # Use assertDictEqual from unittest.TestCase to compare
             self.assertDictEqual(actual, expected, msg=msg)
         except AssertionError as e:

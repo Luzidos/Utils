@@ -81,7 +81,7 @@ class MockS3:
         if self.should_override(f"{bucket_name}/{dir_name}"):
             for patcher in self.patchers:
                 patcher.stop()
-                res = s3_read.read_dir_filenames_from_s3(bucket_name, dir_name)
+            res = s3_read.read_dir_filenames_from_s3(bucket_name, dir_name)
             for patcher in self.patchers:
                 patcher.start()
             return res
@@ -122,7 +122,7 @@ class MockS3:
         if self.should_override(f"{bucket_name}/{prefix}"):
             for patcher in self.patchers:
                 patcher.stop()
-                res = s3_read.list_childdirectories(bucket_name, prefix)
+            res = s3_read.list_childdirectories(bucket_name, prefix)
             for patcher in self.patchers:
                 patcher.start()
             return res
@@ -159,7 +159,7 @@ class MockS3:
         if self.should_override(f"{bucket_name}/{object_name}"):
             for patcher in self.patchers:
                 patcher.stop()
-                res = s3_write.upload_file_to_s3(file_path, bucket_name, object_name)
+            res = s3_write.upload_file_to_s3(file_path, bucket_name, object_name)
             for patcher in self.patchers:
                 patcher.start()
             return res
@@ -181,7 +181,7 @@ class MockS3:
         if self.should_override(f"{bucket_name}/{object_name}"):
             for patcher in self.patchers:
                 patcher.stop()
-                res = s3_write.upload_file_obj_to_s3(file_obj, bucket_name, object_name)
+            res = s3_write.upload_file_obj_to_s3(file_obj, bucket_name, object_name)
             for patcher in self.patchers:
                 patcher.start()
             return res
@@ -203,7 +203,7 @@ class MockS3:
         if self.should_override(f"{bucket_name}/{object_name}"):
             for patcher in self.patchers:
                 patcher.stop()
-                res = s3_write.upload_dict_as_json_to_s3(bucket_name, dict_data, object_name)
+            res = s3_write.upload_dict_as_json_to_s3(bucket_name, dict_data, object_name)
             for patcher in self.patchers:
                 patcher.start()
             return res

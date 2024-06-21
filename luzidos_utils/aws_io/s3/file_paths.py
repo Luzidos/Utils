@@ -9,6 +9,7 @@ INVOICE_EINVOICE_FILE_PATH = "public/{user_id}/invoices/invoice_{invoice_id}/fil
 INVOICE_EINVOICE_DATA_PATH = "public/{user_id}/invoices/invoice_{invoice_id}/files/einvoice.json"
 INVOICE_LOCKED_PATH = "public/{user_id}/invoices/invoice_{invoice_id}/is_locked.json"
 INVOICE_LOG_PATH = "public/{user_id}/invoices/invoice_{invoice_id}/log.json"
+INVOICE_STATE_PATH = "public/{user_id}/invoices/invoice_{invoice_id}/state.json"
 
 # Email object path
 EMAIL_DIR_PATH = "public/{user_id}/emails/email_{email_id}/"

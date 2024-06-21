@@ -133,7 +133,7 @@ class BaseTest(unittest.TestCase):
                 expected[matched_key] = expected.pop(key)
                 key = matched_key
             
-            if isinstance(exp_value, dict):
+            if isinstance(exp_value, dict) and key in actual:
                 # Recursive call for nested dictionaries
                 self._populate_expected_with_actual(expected[key], actual[key])
             elif isinstance(exp_value, list):

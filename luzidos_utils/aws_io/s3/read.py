@@ -35,7 +35,7 @@ def read_file_from_s3(bucket_name, object_name):
         return None
     return file_data
 
-def file_exists_in_s3(bucket_name, object_name):
+def file_exists_in_s3(bucket_name, object_name=None):
     """
     Check if a file exists in an S3 bucket
 
@@ -43,6 +43,10 @@ def file_exists_in_s3(bucket_name, object_name):
     :param object_name: Object name in S3
     :return: True if exists, False otherwise
     """
+    if object_name is None:
+        object_name = bucket_name.split("/")[1:]
+        object_name = "/".join(object_name)
+        bucket_name = bucket_name.split("/")[0]
     return read_file_from_s3(bucket_name, object_name) is not None
 
 def read_json_from_s3(bucket_name, object_name):

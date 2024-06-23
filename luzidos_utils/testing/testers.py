@@ -296,8 +296,22 @@ class ModuleTest(BaseTest):
         expected_eventbridge_data = None
         if "eventbridge_data" in self.mock_boto3.mock_data:
             mock_eventbridge_data = self.mock_boto3.mock_data["eventbridge_data"]
+            for target in mock_eventbridge_data["targets"]:
+                targets = mock_eventbridge_data["targets"][target]
+                for i in range(len(targets)):
+                    target_dict = targets[i]
+                    if "Input" in target_dict:
+                        target_dict["Input"] = json.loads(target_dict["Input"])
+                    mock_eventbridge_data["targets"][target][i] = target_dict
         if "eventbridge_data" in self.expected_boto3.mock_data:
             expected_eventbridge_data = self.expected_boto3.mock_data["eventbridge_data"]
+            for target in expected_eventbridge_data["targets"]:
+                targets = expected_eventbridge_data["targets"][target]
+                for i in range(len(targets)):
+                    target_dict = targets[i]
+                    if "Input" in target_dict:
+                        target_dict["Input"] = json.loads(target_dict["Input"])
+                    expected_eventbridge_data["targets"][target][i] = target_dict
         self.assertRegexDictEqual(mock_eventbridge_data, expected_eventbridge_data, msg=msg)
     
     def assert_workmail_data(self):

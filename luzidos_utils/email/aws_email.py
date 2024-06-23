@@ -125,7 +125,8 @@ def _handle_attachments(attachments, msg, from_address):
             print('File copy error')
             return 
 
-        attachment_ids.append(f"{attachment_id}{file_extension}")
+        attachment_ids.append(attachment_id)
+        # attachment_ids.append(f"{attachment_id}{file_extension}")
         file_data = s3_read.read_file_from_s3(bucket_name, object_name)
         
         part = MIMEBase('application', "octet-stream")

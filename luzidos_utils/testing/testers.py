@@ -108,7 +108,8 @@ class BaseTest(unittest.TestCase):
             self._populate_expected_with_actual(expected, actual)
             # Use assertDictEqual from unittest.TestCase to compare
             self.assertDictEqual(actual, expected, msg=msg)
-        except AssertionError as e:
+
+        except:
             # Dump actual and expected data into a JSON file if assertion fails
             root_dir = self.test_config_path.split("configs/")[0]
             save_path = os.path.join(root_dir, "assertion_failure_dump.json")
@@ -119,6 +120,7 @@ class BaseTest(unittest.TestCase):
                     "message": msg
                 }, f, indent=4)
             raise  # Re-raise the exception to not hide the test failure
+        
 
 
     def _populate_expected_with_actual(self, expected, actual):

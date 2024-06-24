@@ -184,7 +184,7 @@ def send_message(from_address, to_address, subject, body, attachments=None, cc=N
 
         email_details = {
             'from':  msg['From'],
-            'to': [msg['To']] + ([cc] if cc else []),
+            'to': msg['To'],
             'cc': msg.get('Cc', None),
             'subject':  msg['Subject'],
             'date': str(datetime.now()),  # Example date
@@ -310,7 +310,7 @@ def _reply_to_message(workmail_message_id, body, attachments=None, reply_all=Fal
 
         email_details = {
             'from': new_msg['From'],
-            'to': [new_msg['To']] + ([cc] if cc else []),
+            'to': new_msg['To'],
             'cc': new_msg.get('Cc', None),
             'subject':  new_msg['Subject'],
             'date': str(datetime.now()),  # Example date
@@ -378,7 +378,7 @@ def reply_to_thread(thread_id, email_data, body, attachments=None, reply_all=Fal
 
         email_details = {
             'from': new_msg['From'],
-            'to': [new_msg['To']],
+            'to': new_msg['To'],
             'cc': new_msg.get('Cc', None),
             'subject':  new_msg['Subject'],
             'date': str(datetime.now()),  # Example date

@@ -311,7 +311,7 @@ def unlock_agent(user_id, invoice_id):
     :param invoice_id: Invoice id
     """
     bucket_name = fp.ROOT_BUCKET
-    object_name = fp.INVOICE_LOCK_PATH.format(user_id=user_id, invoice_id=invoice_id)
+    object_name = fp.INVOICE_LOCKED_PATH.format(user_id=user_id, invoice_id=invoice_id)
     status = upload_dict_as_json_to_s3(bucket_name, {"locked": False}, object_name)
     return status
 

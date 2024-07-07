@@ -275,7 +275,7 @@ def get_open_agent_processes(user_id):
     :return: List of open agent processes
     """
     bucket_name = fp.ROOT_BUCKET
-    object_name = fp.USER_OPEN_AGENT_PROCESSES_PATH.format(user_id=user_id)
+    object_name = fp.USER_AGENT_PROCESSES_PATH.format(user_id=user_id)
     open_agent_processes = read_json_from_s3(bucket_name, object_name)
     if open_agent_processes is None:
        return []

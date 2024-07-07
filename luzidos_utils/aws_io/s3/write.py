@@ -267,7 +267,11 @@ def copy_file(bucket_name, source_file, dest_file):
     """
     s3_client = boto3.client('s3')
     try:
-        s3_client.copy_object(Bucket=bucket_name, CopySource=source_file, Key=dest_file)
+        copy_source = {
+            'Bucket': bucket_name,
+            'Key': source_key
+        }
+        s3_client.copy_object(Bucket=bucket_name, CopySource=copy_source, Key=dest_file)
     except Exception as e:
         print(e)
         return False

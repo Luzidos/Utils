@@ -36,6 +36,7 @@ def add_invoice(user_id, invoice_id, vendor_name, transaction_items, transaction
         return response
     except ClientError as e:
         print(e.response['Error']['Message'])
+        print("Error in add Invoice to DB execution.")
         return None
 
 def update_invoice_status(user_id, invoice_id, status):

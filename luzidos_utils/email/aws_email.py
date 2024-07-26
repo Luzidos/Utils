@@ -403,8 +403,8 @@ if __name__ == "__main__":
     send_message(
         from_address='luzidos@luzidos.com',
         to_address='tiberiomalaiud@gmail.com',
-        subject='Attachment Test',
-        body='Will it work?',
+        subject='Tiberio!',
+        body='From code and from SF!',
         #attachments=["luzidosdatadump/public/927aa041-e5ba-4acf-ab0e-19a1c629bee9/emails/email_<CAOamM342zt2P+n9SCfUUoe--RFDtkNkD5uwaHmysDY0NC4F8zg@mail.gmail.com>/email.json"],  
         
     )

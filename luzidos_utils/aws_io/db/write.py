@@ -14,7 +14,7 @@ def add_invoice(user_id, invoice_id, vendor_name, transaction_items, transaction
     }
     """
 
-     # Initialize a session using Amazon DynamoDB
+    # Initialize a session using Amazon DynamoDB
     dynamodb = boto3.resource('dynamodb')
 
     # Select your table

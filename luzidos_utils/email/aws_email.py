@@ -8,12 +8,15 @@ from email import policy
 import email
 from email import encoders
 from email.utils import parseaddr, formataddr, make_msgid
+from luzidos_utils.openai.gpt_call import get_gpt_response
+from luzidos_utils.email import prompts
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from datetime import datetime
 import uuid
 import os
+import json
 
 def _format_address(address):
     name, email = parseaddr(address)
@@ -99,6 +102,9 @@ def _update_email_s3(email_details):
     return s3_write.upload_email_body_to_s3(userSub, thread_id, email_json)
 
 def _handle_attachments(attachments, msg, from_address):
+    lambda_client = boto3.client('lambda')
+    s3_client = boto3.client('s3')
+
     name, from_address = parseaddr(from_address)
     references = msg.get('References', '')
     if references:
@@ -107,11 +113,13 @@ def _handle_attachments(attachments, msg, from_address):
         print('No references found in email object. Attachments function.')
         return 
     
+    attachments_OCR = []
     attachment_ids = []
+
     for file_path in attachments:
         bucket_name = file_path.split('/')[0]
         object_name = '/'.join(file_path.split('/')[1:])
-        _, file_extension = os.path.splitext(object_name)
+        attachment_filename, file_extension = os.path.splitext(object_name)
 
         # Copy file to S3.
         attachment_id = str(uuid.uuid4())  # Generate a unique ID for each attachment
@@ -126,6 +134,19 @@ def _handle_attachments(attachments, msg, from_address):
             return 
 
         attachment_ids.append(attachment_id)
+
+
+        attachmentOCR = {
+            'attachment_id': f"{attachment_id}",
+            'filename': attachment_filename,
+            's3_key': attachment_s3_key,
+            'type': file_extension
+        }
+
+        print("Attachment OCR: ", attachmentOCR)
+
+        attachments_OCR.append(attachmentOCR)
+
         # attachment_ids.append(f"{attachment_id}{file_extension}")
         file_data = s3_read.read_file_from_s3(bucket_name, object_name)
         
@@ -137,6 +158,33 @@ def _handle_attachments(attachments, msg, from_address):
         part.add_header('Content-Disposition', f'attachment; filename="{file_name}"')
         
         msg.attach(part)
+    
+    for attachment in attachments_OCR:
+        print('Calling OCR.')
+        attachment_data = {}
+        attachment_data["attachment_id"] = attachment['attachment_id']
+        attachment_data["attachment_filename"] = attachment['filename']
+        attachment_data["attachment_type"] = attachment['type']
+
+        response = lambda_client.invoke(
+            FunctionName='OCR',
+            InvocationType='RequestResponse',
+            Payload=json.dumps({'s3_bucket': bucket_name, 's3_key': attachment['s3_key']})
+        )
+        print('Response received.')
+        
+        # Process the response from the invoked Lambda
+        response_payload = json.loads(response['Payload'].read().decode('utf-8'))
+        attachment_data["attachment_OCR"] = response_payload
+
+        # Summarize email
+        summarize_prompt = prompts.SUMMARIZE_ATTAACHMENT_PROMPT(attachment_data["attachment_type"], attachment_data["attachment_filename"], attachment_data["attachment_OCR"])
+        attachment_data["attachment_description"] = get_gpt_response(summarize_prompt)
+        
+        # Upload the response to S3
+        processed_s3_key = f"public/{userSub}/emails/email_{thread_id}/attachments/{attachment['attachment_id']}.json"
+        s3_client.put_object(Bucket=bucket_name, Key=processed_s3_key, Body=json.dumps(attachment_data))
+        print('OCR response uploaded.')
 
     return msg, attachment_ids
     

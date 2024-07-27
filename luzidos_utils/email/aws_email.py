@@ -178,7 +178,7 @@ def _handle_attachments(attachments, msg, from_address):
         attachment_data["attachment_OCR"] = response_payload
 
         # Summarize email
-        summarize_prompt = prompts.SUMMARIZE_ATTAACHMENT_PROMPT(attachment_data["attachment_type"], attachment_data["attachment_filename"], attachment_data["attachment_OCR"])
+        summarize_prompt = prompts.SUMMARIZE_ATTACHMENT_PROMPT.format(attachment_data["attachment_type"], attachment_data["attachment_filename"], attachment_data["attachment_OCR"])
         attachment_data["attachment_description"] = get_gpt_response(summarize_prompt)
         
         # Upload the response to S3
